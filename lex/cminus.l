@@ -1,8 +1,7 @@
 /****************************************************/
-/* File: tiny.l                                     */
-/* Lex specification for TINY                       */
-/* Compiler Construction: Principles and Practice   */
-/* Kenneth C. Louden                                */
+/* File: cminus.l                                   */
+/* Lex specification for C-MINUS                    */
+/* Jangho Park		                                */
 /****************************************************/
 
 %{
@@ -23,23 +22,32 @@ whitespace  [ \t]+
 %%
 
 "if"            {return IF;}
-"then"          {return THEN;}
+"return"        {return RETURN;}
 "else"          {return ELSE;}
-"end"           {return END;}
-"repeat"        {return REPEAT;}
-"until"         {return UNTIL;}
-"read"          {return READ;}
-"write"         {return WRITE;}
-":="            {return ASSIGN;}
-"="             {return EQ;}
+"while"         {return WHILE;}
+"void"          {return VOID;}
+"int"           {return INT;}
+
+"=="            {return EQUAL;}
+"!="			{return NOTEQ;}
+"="             {return ASSIGN;}
 "<"             {return LT;}
+"<="			{return LTEQ;}
+">"				{return GT;}
+">="			{return GTEQ;}
 "+"             {return PLUS;}
 "-"             {return MINUS;}
 "*"             {return TIMES;}
-"/"             {return OVER;}
+"/"             {return DIVISION;}
 "("             {return LPAREN;}
 ")"             {return RPAREN;}
+"{"				{return LCURLYBRACKET;}
+"}"				{return RCURLYBRACKET;}
+"["				{return LSQUAREBRACKET;}
+"]"				{return RSQUAREBRACKET;}
 ";"             {return SEMI;}
+","				{return COMMA;}
+
 {number}        {return NUM;}
 {identifier}    {return ID;}
 {newline}       {lineno++;}
