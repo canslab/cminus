@@ -76,7 +76,7 @@ static void ungetNextChar(void)
 
 /* 2015-09-26 */
 /* lookup table of reserved words for C-minus Compiler*/
-static struct
+static struct TOKENTYPE
 {
 	char* str;
 	TokenType tok;
@@ -294,7 +294,9 @@ TokenType getToken(void)
 			else
 			{
 				ungetNextChar();
-				currentToken = ERROR;
+				c = '/';
+				save = TRUE;
+				currentToken = DIVISION;
 				state = DONE;
 			}
 			break;
