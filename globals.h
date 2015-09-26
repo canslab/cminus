@@ -23,7 +23,7 @@
 #endif
 
 /* MAXRESERVED = the number of reserved words */
-#define MAXRESERVED 8
+#define MAXRESERVED 6
 
 /* 2015-09-26 */
 /* Enumeration for C-minus Token Type */
@@ -40,8 +40,7 @@ typedef enum
 
 	/* special symbols */
 	PLUS, MINUS, TIMES, DIVISION, LT, LTEQ, GT, GTEQ, EQUAL, NOTEQ, ASSIGN, SEMICOLON,
-	COMMA, LPAREN, RPAREN, LSQUAREBRACKET, RSQUAREBRACKET, LCURLYBRACKET, RCURLYBRACKET,
-	LCOMMENT, RCOMMENT
+	COMMA, LPAREN, RPAREN, LSQUAREBRACKET, RSQUAREBRACKET, LCURLYBRACKET, RCURLYBRACKET
 } TokenType;
 
 extern FILE* source; /* source code text file */

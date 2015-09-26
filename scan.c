@@ -10,14 +10,20 @@
 #include "scan.h"
 
 /* states in scanner DFA */
-typedef enum
+/* 2015-09-26 */
+typedef enum STATETYPE
 {
-	START,
-	INASSIGN,
-	INCOMMENT,
+	START,			/*  Start State */
+	INEQUAL,		/*  deal with ==, =  */
+	INNOTEQUAL,     /*  deal with != */
+	INGT,			/*  deal with >, >= */
+	INLT,			/*  deal with <, <= */
+	INCOMMENT,		/*  deal with C-style comment */
+	INCOMMENT_INTER1,	/* deals with C-style comment after '/*' */
+	INCOMMENT_INTER2,	/* deals with C-style comment before '/' */
 	INNUM,
 	INID,
-	DONE
+	DONE			/*  TERMINATION STATE */
 } StateType;
 
 /* lexeme of identifier or reserved word */
@@ -28,7 +34,7 @@ char tokenString[MAXTOKENLEN+1];
 #define BUFLEN 256
 
 static char lineBuf[BUFLEN]; /* holds the current line */
-static int linepos = 0; /* current position in LineBuf */
+static int currnetPositionInLineBuf = 0; /* current position in LineBuf */
 static int bufsize = 0; /* current size of buffer string */
 static int EOF_flag = FALSE; /* corrects ungetNextChar behavior on EOF */
 
@@ -37,7 +43,7 @@ static int EOF_flag = FALSE; /* corrects ungetNextChar behavior on EOF */
    exhausted */
 static int getNextChar(void)
 {
-	if (!(linepos < bufsize))
+	if (!(currnetPositionInLineBuf < bufsize))
 	{
 		lineno++;
 		if (fgets(lineBuf, BUFLEN - 1, source))
@@ -45,8 +51,8 @@ static int getNextChar(void)
 			if (EchoSource)
 				fprintf(listing, "%4d: %s", lineno, lineBuf);
 			bufsize = strlen(lineBuf);
-			linepos = 0;
-			return lineBuf[linepos++];
+			currnetPositionInLineBuf = 0;
+			return lineBuf[currnetPositionInLineBuf++];
 		}
 		else
 		{
@@ -55,7 +61,7 @@ static int getNextChar(void)
 		}
 	}
 	else
-		return lineBuf[linepos++];
+		return lineBuf[currnetPositionInLineBuf++];
 }
 
 /* ungetNextChar backtracks one character
@@ -64,24 +70,23 @@ static void ungetNextChar(void)
 {
 	if (!EOF_flag)
 	{
-		linepos-- ;
+		currnetPositionInLineBuf-- ;
 	}
 }
 
-/* lookup table of reserved words */
+/* 2015-09-26 */
+/* lookup table of reserved words for C-minus Compiler*/
 static struct
 {
 	char* str;
 	TokenType tok;
 } reservedWords[MAXRESERVED] = {
-	{ "if", IF },
-	{ "then", THEN },
-	{ "else", ELSE },
-	{ "end", END },
-	{ "repeat", REPEAT },
-	{ "until", UNTIL },
-	{ "read", READ },
-	{ "write", WRITE }
+	{ "else",   ELSE },
+	{ "if",     IF},
+	{ "int",    INT },
+	{ "return", RETURN },
+	{ "void",   VOID },
+	{ "while",  WHILE },
 };
 
 /* lookup an identifier to see if it is a reserved word */
@@ -124,19 +129,52 @@ TokenType getToken(void)
 		{
 		case START:
 			if (isdigit(c))
+			{
 				state = INNUM;
+			}
+
 			else if (isalpha(c))
+			{
 				state = INID;
-			else if (c == ':')
-				state = INASSIGN;
+			}
+
+			else if (c == '=')
+			{
+				state = INEQUAL;
+			}
+
+			else if (c == '!')
+			{
+				/* it copes with != case*/
+				state = INNOTEQUAL;
+			}
+
+			else if ( c == '>' )
+			{
+				/* transite START to INGT(greater than) state */
+				state = INGT;
+			}
+
+			else if ( c == '<' )
+			{
+				/* transite START to INLT(less than) state */
+				state = INLT;
+			}
+
+			/* if the next character is white space, just consume , don't save it */
 			else if ((c == ' ') || (c == '\t') || (c == '\n'))
+			{
 				save = FALSE;
-			else if (c == '{')
+			}
+
+			/* '/' indicates that we should go into INCOMMENT state */
+			else if (c == '/')
 			{
 				save = FALSE;
 				state = INCOMMENT;
 			}
-			else
+
+			else /* it copes with a single character token */
 			{
 				state = DONE;
 				switch (c)
@@ -144,12 +182,6 @@ TokenType getToken(void)
 				case EOF:
 					save = FALSE;
 					currentToken = ENDFILE;
-					break;
-				case '=':
-					currentToken = EQ;
-					break;
-				case '<':
-					currentToken = LT;
 					break;
 				case '+':
 					currentToken = PLUS;
@@ -161,7 +193,7 @@ TokenType getToken(void)
 					currentToken = TIMES;
 					break;
 				case '/':
-					currentToken = OVER;
+					currentToken = DIVISION;
 					break;
 				case '(':
 					currentToken = LPAREN;
@@ -169,8 +201,23 @@ TokenType getToken(void)
 				case ')':
 					currentToken = RPAREN;
 					break;
+				case '{':
+					currentToken = LCURLYBRACKET;
+					break;
+				case '}':
+					currentToken = RCURLYBRACKET;
+					break;
+				case '[':
+					currentToken = LSQUAREBRACKET;
+					break;
+				case ']':
+					currentToken = RSQUAREBRACKET;
+					break;
+				case ',':
+					currentToken = COMMA;
+					break;
 				case ';':
-					currentToken = SEMI;
+					currentToken = SEMICOLON;
 					break;
 				default:
 					currentToken = ERROR;
@@ -178,30 +225,124 @@ TokenType getToken(void)
 				}
 			}
 			break;
-		case INCOMMENT:
-			save = FALSE;
-			if (c == EOF)
+
+		case INEQUAL:
+			if (c == '=')					/* -> If c is also '=' then it is EQUAL(==) */
 			{
-				state = DONE;
-				currentToken = ENDFILE;
+				currentToken = EQUAL;
 			}
-			else if (c == '}')
-				state = START;
-			break;
-		case INASSIGN:
-			state = DONE;
-			if (c == '=')
+			else							/* it means ASSIGN(=) */
+			{
+				/* backup in the input */
+				ungetNextChar();
+				/* if assignment operator, c doesn't have to be saved */
+				save = FALSE;
+				/* current token should be ASSIGN(=) */
 				currentToken = ASSIGN;
+			}
+			state = DONE;
+			break;
+
+		case INNOTEQUAL:			/* added */
+			if ( c == '=')			/* != case */
+			{
+				currentToken = NOTEQ;
+			}
 			else
-			{ /* backup in the input */
+			{
 				ungetNextChar();
 				save = FALSE;
 				currentToken = ERROR;
 			}
+			state = DONE;
 			break;
+
+		case INGT:
+			if ( c == '=')
+			{
+				currentToken = GTEQ;
+			}
+			else
+			{
+				ungetNextChar();
+				save = FALSE;
+				currentToken = GT;
+			}
+			state = DONE;
+			break;
+
+		case INLT:
+			if (c == '=')
+			{
+				currentToken = LTEQ;
+			}
+			else
+			{
+				ungetNextChar();
+				save = FALSE;
+				currentToken = LT;
+			}
+			state = DONE;
+			break;
+
+		case INCOMMENT:
+			save = FALSE;
+			if (c == '*')
+			{
+				state = INCOMMENT_INTER1;
+			}
+			else
+			{
+				ungetNextChar();
+				currentToken = ERROR;
+				state = DONE;
+			}
+			break;
+		//			save = FALSE;
+		//			if (c == EOF)
+		//			{
+		//				state = DONE;
+		//				currentToken = ENDFILE;
+		//			}
+		//			else if (c == '}')
+		//				state = START;
+		case INCOMMENT_INTER1:
+			save = FALSE;
+			if ( c == '*' )
+			{
+				state = INCOMMENT_INTER2;
+			}
+
+			/* if we encounters a character except '*', just consume it! */
+			/* and the next state would be the same state */
+			else
+			{
+				state = INCOMMENT_INTER1;
+			}
+			break;
+
+		case INCOMMENT_INTER2:
+			save = FALSE;
+			if ( c == '/')
+			{
+				// comment ended
+				// return to first state(=START)
+				state = START;
+			}
+			else if (c == '*')
+			{
+				state = INCOMMENT_INTER2;
+			}
+			else	/* when an input character is not ('/' or '*') */
+			{
+				state = INCOMMENT_INTER1;
+			}
+			break;
+
 		case INNUM:
 			if (!isdigit(c))
-			{ /* backup in the input */
+			{
+				/* backup in the input */
 				ungetNextChar();
 				save = FALSE;
 				state = DONE;
@@ -210,7 +351,8 @@ TokenType getToken(void)
 			break;
 		case INID:
 			if (!isalpha(c))
-			{ /* backup in the input */
+			{
+				/* backup in the input */
 				ungetNextChar();
 				save = FALSE;
 				state = DONE;
@@ -224,13 +366,19 @@ TokenType getToken(void)
 			currentToken = ERROR;
 			break;
 		}
+
 		if ((save) && (tokenStringIndex <= MAXTOKENLEN))
+		{
 			tokenString[tokenStringIndex++] = (char) c;
+		}
+
 		if (state == DONE)
 		{
 			tokenString[tokenStringIndex] = '\0';
 			if (currentToken == ID)
+			{
 				currentToken = reservedLookup(tokenString);
+			}
 		}
 	}
 	if (TraceScan)

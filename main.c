@@ -37,8 +37,8 @@ FILE * listing;
 FILE * code;
 
 /* allocate and set tracing flags */
-int EchoSource = FALSE;
-int TraceScan = FALSE;
+int EchoSource = TRUE;					//
+int TraceScan = TRUE;					//
 int TraceParse = FALSE;
 int TraceAnalyze = FALSE;
 int TraceCode = FALSE;
@@ -57,7 +57,8 @@ main(int argc, char * argv[])
 
 	strcpy(pgm, argv[1]);
 	if (strchr(pgm, '.') == NULL)
-		strcat(pgm, ".tny");
+		strcat(pgm, ".cm");
+//		strcat(pgm, ".tny");
 	source = fopen(pgm, "r");
 
 	if (source == NULL)
