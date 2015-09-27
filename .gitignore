@@ -10,3 +10,9 @@ tiny
 cminus
 
 lex/tiny2.l
+
+cminus_flex
+
+.settings/language.settings.xml
+
+lex.yy.c
