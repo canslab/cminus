@@ -23,18 +23,24 @@
 #endif
 
 /* MAXRESERVED = the number of reserved words */
-#define MAXRESERVED 8
+#define MAXRESERVED 6
 
+/* 2015-09-26 */
+/* Enumeration for C-minus Token Type */
 typedef enum
 /* book-keeping tokens */
 {
 	ENDFILE, ERROR,
-	/* reserved words */
-	IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE,
+
+	/* reserved words for c-minus*/
+	ELSE, IF, INT, RETURN, VOID, WHILE,
+
 	/* multicharacter tokens */
 	ID, NUM,
+
 	/* special symbols */
-	ASSIGN, EQ, LT, PLUS, MINUS, TIMES, OVER, LPAREN, RPAREN, SEMI
+	PLUS, MINUS, TIMES, DIVISION, LT, LTEQ, GT, GTEQ, EQUAL, NOTEQ, ASSIGN, SEMICOLON,
+	COMMA, LPAREN, RPAREN, LSQUAREBRACKET, RSQUAREBRACKET, LCURLYBRACKET, RCURLYBRACKET
 } TokenType;
 
 extern FILE* source; /* source code text file */

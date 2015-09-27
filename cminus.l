@@ -45,39 +45,58 @@ whitespace  [ \t]+
 "}"				{return RCURLYBRACKET;}
 "["				{return LSQUAREBRACKET;}
 "]"				{return RSQUAREBRACKET;}
-";"             {return SEMI;}
+";"             {return SEMICOLON;}
 ","				{return COMMA;}
 
 {number}        {return NUM;}
 {identifier}    {return ID;}
 {newline}       {lineno++;}
 {whitespace}    {/* skip whitespace */}
-"{"             { char c;
-                  do
-                  { c = input();
-                    if (c == EOF) break;
-                    if (c == '\n') lineno++;
-                  } while (c != '}');
+"/*"            { 
+					char c;
+                  	for(;;)
+                  	{
+                  	
+                  		while ( (c = input()) != '*' && c != EOF );
+                  		
+                  		if ( c == '*' )
+                  		{
+                  			while ( (c = input()) == '*');
+                  			
+                  			if ( c == '/' )
+                  			{
+                  				break;
+                  			}              	
+                  		}
+                  		if ( c == EOF )
+                  		{
+                  			return ERROR;	
+                  		}                 
+                  	}
+                  	
                 }
 .               {return ERROR;}
 
 %%
 
 TokenType getToken(void)
-{ static int firstTime = TRUE;
-  TokenType currentToken;
-  if (firstTime)
-  { firstTime = FALSE;
-    lineno++;
-    yyin = source;
-    yyout = listing;
-  }
-  currentToken = yylex();
-  strncpy(tokenString,yytext,MAXTOKENLEN);
-  if (TraceScan) {
-    fprintf(listing,"\t%d: ",lineno);
-    printToken(currentToken,tokenString);
-  }
-  return currentToken;
+{ 
+	static int firstTime = TRUE;
+  	TokenType currentToken;
+  	if (firstTime)
+  	{
+  		/* initialization for the scanner */
+  		firstTime = FALSE;
+    	lineno++;
+    	yyin = source;
+    	yyout = listing;
+ 	 }
+  	currentToken = yylex();
+  	strncpy(tokenString,yytext,MAXTOKENLEN);
+  	if (TraceScan) 	
+  	{
+    	fprintf(listing,"\t%d: ",lineno);
+    	printToken(currentToken,tokenString);
+  	}
+  	return currentToken;
 }
-

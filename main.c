@@ -37,8 +37,8 @@ FILE * listing;
 FILE * code;
 
 /* allocate and set tracing flags */
-int EchoSource = FALSE;
-int TraceScan = FALSE;
+int EchoSource = TRUE;					//
+int TraceScan = TRUE;					//
 int TraceParse = FALSE;
 int TraceAnalyze = FALSE;
 int TraceCode = FALSE;
@@ -57,7 +57,8 @@ main(int argc, char * argv[])
 
 	strcpy(pgm, argv[1]);
 	if (strchr(pgm, '.') == NULL)
-		strcat(pgm, ".tny");
+		strcat(pgm, ".cm");
+
 	source = fopen(pgm, "r");
 
 	if (source == NULL)
@@ -66,7 +67,9 @@ main(int argc, char * argv[])
 		exit(1);
 	}
 	listing = stdout; /* send listing to screen */
-	fprintf(listing, "\nTINY COMPILATION: %s\n", pgm);
+	fprintf(listing, "\nC-MINUS COMPILATION: %s\n", pgm);
+	while (getToken()!=ENDFILE);
+
 #if NO_PARSE
 	while (getToken()!=ENDFILE);
 #else
@@ -108,6 +111,7 @@ main(int argc, char * argv[])
 #endif
 #endif
 #endif
+
 	fclose(source);
 	return 0;
 }
