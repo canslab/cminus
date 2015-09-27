@@ -6,3 +6,7 @@ tm
 tiny
 
 *.o
+
+cminus
+
+lex/tiny2.l

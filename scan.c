@@ -13,17 +13,17 @@
 /* 2015-09-26 */
 typedef enum STATETYPE
 {
-	START,			/*  Start State */
-	INEQUAL,		/*  deal with ==, =  */
-	INNOTEQUAL,     /*  deal with != */
-	INGT,			/*  deal with >, >= */
-	INLT,			/*  deal with <, <= */
-	INCOMMENT,		/*  deal with C-style comment */
+	START,				/*  Start State */
+	INEQUAL,			/*  deal with ==, =  */
+	INNOTEQUAL,     	/*  deal with != */
+	INGT,				/*  deal with >, >= */
+	INLT,				/*  deal with <, <= */
+	INCOMMENT,			/*  deal with C-style comment */
 	INCOMMENT_INTER1,	/* deals with C-style comment after '/*' */
 	INCOMMENT_INTER2,	/* deals with C-style comment before '/' */
 	INNUM,
 	INID,
-	DONE			/*  TERMINATION STATE */
+	DONE				/*  TERMINATION STATE */
 } StateType;
 
 /* lexeme of identifier or reserved word */
@@ -192,9 +192,6 @@ TokenType getToken(void)
 				case '*':
 					currentToken = TIMES;
 					break;
-				case '/':
-					currentToken = DIVISION;
-					break;
 				case '(':
 					currentToken = LPAREN;
 					break;
@@ -251,6 +248,7 @@ TokenType getToken(void)
 			else
 			{
 				ungetNextChar();
+				/* for example, (!?) (!;),.. we should not save the character which is next to '!' */
 				save = FALSE;
 				currentToken = ERROR;
 			}
@@ -265,6 +263,7 @@ TokenType getToken(void)
 			else
 			{
 				ungetNextChar();
+				/* for example, (>?) (>;),.. we should not save the character which is next to '>' */
 				save = FALSE;
 				currentToken = GT;
 			}
@@ -279,6 +278,7 @@ TokenType getToken(void)
 			else
 			{
 				ungetNextChar();
+				/* for example, (<?) (<;),.. we should not save the character which is next to '<' */
 				save = FALSE;
 				currentToken = LT;
 			}
@@ -291,48 +291,41 @@ TokenType getToken(void)
 			{
 				state = INCOMMENT_INTER1;
 			}
-			else
+			else /* if c is not *, it means / should be thought of as division */
 			{
-				ungetNextChar();
-				c = '/';
-				save = TRUE;
-				currentToken = DIVISION;
-				state = DONE;
+				ungetNextChar();	/* don't consume next character */
+				c = '/';			/* division symbol should be put into c */
+				save = TRUE;		/* division symbol should be saved in tokenString*/
+				currentToken = DIVISION;	/* return Token should be DIVSION */
+				state = DONE;		/* go to the final state(=DONE) */
 			}
 			break;
-		//			save = FALSE;
-		//			if (c == EOF)
-		//			{
-		//				state = DONE;
-		//				currentToken = ENDFILE;
-		//			}
-		//			else if (c == '}')
-		//				state = START;
 		case INCOMMENT_INTER1:
-			save = FALSE;
+			save = FALSE;			/* don't save */
 			if ( c == '*' )
 			{
+				/* the next state is INCOMMENT_INTER2 state */
 				state = INCOMMENT_INTER2;
 			}
 
 			/* if we encounters a character except '*', just consume it! */
 			/* and the next state would be the same state */
-			else
+			else	/* when input character is [OTHER] */
 			{
-				state = INCOMMENT_INTER1;
+				state = INCOMMENT_INTER1;	/* cycle */
 			}
 			break;
 
 		case INCOMMENT_INTER2:
 			save = FALSE;
-			if ( c == '/')
+			if ( c == '/')	/* when c is '/', comments ended */
 			{
-				// comment ended
-				// return to first state(=START)
+				/* return to first state(=START) */
 				state = START;
 			}
 			else if (c == '*')
 			{
+				/* go to self state */
 				state = INCOMMENT_INTER2;
 			}
 			else	/* when an input character is not ('/' or '*') */
@@ -340,7 +333,6 @@ TokenType getToken(void)
 				state = INCOMMENT_INTER1;
 			}
 			break;
-
 		case INNUM:
 			if (!isdigit(c))
 			{
