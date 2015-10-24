@@ -90,7 +90,7 @@ var_declaration		: type_specifier ID { savedName = copyString(tokenString); } SE
 					;
 			
 /* 5 */	
-type_specifier  	: INT { $$ = newExpNode(TypeK); $$->tokType = INT; }
+type_specifier  	: INT   { $$ = newExpNode(TypeK); $$->tokType = INT; }
 					| VOID	{ $$ = newExpNode(TypeK); $$->tokType = VOID; }
 					;
 
@@ -210,7 +210,7 @@ statement			: expression_stmt { $$ = $1; }
 					| compound_stmt	  { $$ = $1; }
 					| selection_stmt  { $$ = $1; }
 					| iteration_stmt  { $$ = $1; }
-					| return_stmt      { $$ = $1; }
+					| return_stmt     { $$ = $1; }
 					;
 					
 /* 14 */
@@ -262,13 +262,15 @@ return_stmt			: RETURN SEMICOLON
 /* 18 */
 expression			: var ASSIGN expression
 					{
-						$$ = newStmtNode(ExpK);
+						$$ = newStmtNode(AssignK);
+						$$->tokType = ASSIGN;
 						$$->child[0] = $1;
+						$$->child[1] = $3;
 					} 
 					| simple_expression
 					{
 						$$ = $1;
-					} 
+					}
 					;
 				
 /* 19 */

@@ -15,77 +15,6 @@
 #include <ctype.h>
 #include <string.h>
 
-
-typedef enum
-{
-	StmtK,		// statement node
-	DecK,		// declaration node
-	ExpK,
-	OpK			// operator node
-} NodeKind;
-
-typedef enum
-{
-	ExpK,
-	CmpK,		// compound statement
-	SelK,		// if statement
-	ItK,		// while statement
-	RetK,		// return statement
-	CallK		// call statement
-} StmtKind;
-
-typedef enum
-{
-	VarK,	// varaible declaration
-	FunK,	// function declaration
-	ParamK,	// parameter declaration
-} DeclKind;
-
-typedef enum
-{
-	ConstK, // Constant expression
-	IdK,	// id		expression
-	CalcK	// calculation expression   eg) a + b, a > b
-
-} ExpKind;
-
-typedef enum
-{
-	RelOpK,	// >=, <=, ...
-	MathOpK	// +, -, *, /
-}OpKind;
-
-/* ExpType is used for type checking */
-typedef enum {Void,Integer} ExpType;
-
-#define MAXCHILDREN 3
-
-typedef struct treeNode
-{
-	struct treeNode * child[MAXCHILDREN];
-	struct treeNode * sibling;
-	int lineno;
-
-	NodeKind nodekind;
-
-	union
-	{
-		DeclKind kindInDecl;
-		StmtKind kindInStmt;
-		ExpKind kindInExp;
-		OpKind	kindInOp;
-	} detailKind;
-
-	// it indicates attributes
-	TokenType tokType;			// it contains one of ( PLUS, MINUS, ...... )
-	int value;					// value
-	char *name;					// ex) name of the variable
-
-	ExpType type; /* for type checking of exps */
-} TreeNode;
-
-
-
 /* Yacc/Bison generates internally its own values
  * for the tokens. Other files can access these values
  * by including the tab.h file generated using the
@@ -132,6 +61,82 @@ extern int lineno; /* source line number for listing */
 /**************************************************/
 /***********   Syntax tree for parsing ************/
 /**************************************************/
+
+typedef enum
+{
+	StmtK,		// statement node
+	DecK,		// declaration node
+	ExpK,		// expression node
+	OpK			// operator node
+} NodeKind;
+
+////////////////////////////////////////////////////
+
+typedef enum
+{
+	CmpK,		// compound statement
+	SelK,		// if statement
+	ItK,		// while statement
+	RetK,		// return statement
+	CallK,		// call statement
+	AssignK
+} StmtKind;
+
+typedef enum
+{
+	VarK,	// varaible declaration
+	FunK,	// function declaration
+	ParamK,	// parameter declaration
+
+} DeclKind;
+
+typedef enum
+{
+	ConstK, // Constant expression
+	IdK,	// id		expression
+	CalcK,	// calculation expression   eg) a + b, a > b
+	TypeK,
+
+} ExpKind;
+
+typedef enum
+{
+	RelOpK,	// >=, <=, ...
+	MathOpK	// +, -, *, /
+
+} OpKind;
+
+/* ExpType is used for type checking */
+typedef enum {Void,Integer} ExpType;
+
+#define MAXCHILDREN 3
+
+typedef struct treeNode
+{
+	struct treeNode * child[MAXCHILDREN];
+	struct treeNode * sibling;
+	int lineno;
+
+	NodeKind nodekind;
+
+	union
+	{
+		DeclKind kindInDecl;
+		StmtKind kindInStmt;
+		ExpKind kindInExp;
+		OpKind	kindInOp;
+
+	} detailKind;
+
+	// it indicates attributes
+	TokenType tokType;			// it contains one of ( PLUS, MINUS, ...... )
+	int value;					// value
+	char *name;					// ex) name of the variable
+
+	ExpType type; /* for type checking of exps */
+} TreeNode;
+
+
 
 
 /**************************************************/

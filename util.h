@@ -23,12 +23,10 @@ TreeNode * newStmtNode(StmtKind);
  */
 TreeNode * newDeclNode(DeclKind);
 
-
 /* Function newExpNode creates a new expression
  * node for syntax tree construction
  */
 TreeNode * newExpNode(ExpKind kind);
-
 
 
 TreeNode *newOpNode(OpKind kind);
