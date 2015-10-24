@@ -223,24 +223,27 @@ void printTree(TreeNode * tree)
 	{
 		printSpaces();
 
-		if (tree->nodekind == 0)
+		if (tree->nodekind == StmtK)
 		{
-			switch (tree->kind.stmt)
+			switch (tree->detailKind.kindInStmt)
 			{
-			case IfK:
+			case SelK:
 				fprintf(listing, "If\n");
 				break;
-			case RepeatK:
-				fprintf(listing, "Repeat\n");
+			case CmpK:
+				fprintf(listing, "Compound statement \n");
 				break;
 			case AssignK:
-				fprintf(listing, "Assign to: %s\n", tree->attr.name);
+				fprintf(listing, "Assign to: \n");
 				break;
-			case ReadK:
-				fprintf(listing, "Read: %s\n", tree->attr.name);
+			case ItK:
+				fprintf(listing, "While statement \n");
 				break;
-			case WriteK:
-				fprintf(listing, "Write\n");
+			case RetK:
+				fprintf(listing, "Return Statement \n");
+				break;
+			case CallK:
+				fprintf(listing, "Call statement \n");
 				break;
 			default:
 				fprintf(listing, "Unknown ExpNode kind\n");
@@ -249,20 +252,55 @@ void printTree(TreeNode * tree)
 		}
 		else if (tree->nodekind == DecK)
 		{
-			switch (tree->kind.exp)
+			switch (tree->detailKind.kindInDecl)
 			{
-			case OpK:
-				fprintf(listing, "Op: ");
-				printToken(tree->attr.op, "\0");
+			case VarK:
+				fprintf(listing, "Var declaration: \n");
 				break;
-			case ConstK:
-				fprintf(listing, "Const: %d\n", tree->attr.val);
+			case FunK:
+				fprintf(listing, "Func declaration \n");
 				break;
-			case IdK:
-				fprintf(listing, "Id: %s\n", tree->attr.name);
+			case ParamK:
+				fprintf(listing, "Param Declaration \n");
 				break;
 			default:
-				fprintf(listing, "Unknown ExpNode kind\n");
+				fprintf(listing, "Unknown Declaration kind\n");
+				break;
+			}
+		}
+		else if (tree->nodekind == ExpK)
+		{
+			switch (tree->detailKind.kindInExp)
+			{
+			case ConstK:
+				fprintf(listing, "Constant Expression.. \n");
+				break;
+			case IdK:
+				fprintf(listing, "Id Expression.. \n");
+				break;
+			case CalcK:
+				fprintf(listing, "Calculation Expression.. \n");
+				break;
+			case TypeK:
+				fprintf(listing, "Type-specific Expression.. \n");
+				break;
+			default:
+				fprintf(listing, "Unknown Expression Kind..\n");
+				break;
+			}
+		}
+		else if (tree->nodekind == OpK)
+		{
+			switch (tree->detailKind.kindInOp)
+			{
+			case RelOpK:
+				fprintf(listing, "Relative Comparison Opeartion .. \n");
+				break;
+			case MathOpK:
+				fprintf(listing, "Math Operation .. \n");
+				break;
+			default:
+				fprintf(listing, "Unknown Operation Kind.. \n");
 				break;
 			}
 		}

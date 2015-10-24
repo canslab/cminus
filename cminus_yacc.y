@@ -180,7 +180,7 @@ local_declarations	: local_declarations var_declaration
 							$$ = $2;
 						}
 					}
-					|	{ 	$$ = NULL;	printf(" New scope!.. \n")	}	/* when empty */
+					|	{ 	$$ = NULL;	printf(" New scope!.. \n");	}	/* when empty */
 					;
 
 /* 12 */
