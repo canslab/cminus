@@ -6,14 +6,16 @@
 /* Kenneth C. Louden                                */
 /****************************************************/
 
-#include "globals.h"
 #include "util.h"
+#include "globals.h"
 
 /* Procedure printToken prints a token 
  * and its lexeme to the listing file
  */
-void printToken(TokenType token, const char* tokenString) {
-	switch (token) {
+void printToken(TokenType token, const char* tokenString)
+{
+	switch (token)
+	{
 	case ELSE:
 	case IF:
 	case INT:
@@ -99,17 +101,19 @@ void printToken(TokenType token, const char* tokenString) {
 /* Function newStmtNode creates a new statement
  * node for syntax tree construction
  */
-TreeNode * newStmtNode(StmtKind kind) {
+TreeNode * newStmtNode(StmtKind kind)
+{
 	TreeNode * t = (TreeNode *) malloc(sizeof(TreeNode));
 	int i;
 	if (t == NULL)
 		fprintf(listing, "Out of memory error at line %d\n", lineno);
-	else {
+	else
+	{
 		for (i = 0; i < MAXCHILDREN; i++)
 			t->child[i] = NULL;
 		t->sibling = NULL;
-		t->nodekind = StmtK;
-		t->kind.stmt = kind;
+		t->nodekind =  StmtK;
+		t->detailKind.kindInStmt = kind;
 		t->lineno = lineno;
 	}
 	return t;
@@ -118,27 +122,66 @@ TreeNode * newStmtNode(StmtKind kind) {
 /* Function newExpNode creates a new expression 
  * node for syntax tree construction
  */
-TreeNode * newExpNode(ExpKind kind) {
+TreeNode * newDeclNode(DeclKind kind)
+{
 	TreeNode * t = (TreeNode *) malloc(sizeof(TreeNode));
 	int i;
 	if (t == NULL)
 		fprintf(listing, "Out of memory error at line %d\n", lineno);
-	else {
+	else
+	{
 		for (i = 0; i < MAXCHILDREN; i++)
 			t->child[i] = NULL;
 		t->sibling = NULL;
-		t->nodekind = ExpK;
-		t->kind.exp = kind;
+		t->nodekind = DecK;
+		t->detailKind.kindInDecl = kind;
 		t->lineno = lineno;
-		t->type = Void;
 	}
 	return t;
 }
 
+TreeNode * newExpNode(ExpKind kind)
+{
+	TreeNode * t = (TreeNode *) malloc(sizeof(TreeNode));
+		int i;
+		if (t == NULL)
+			fprintf(listing, "Out of memory error at line %d\n", lineno);
+		else
+		{
+			for (i = 0; i < MAXCHILDREN; i++)
+				t->child[i] = NULL;
+			t->sibling = NULL;
+			t->nodekind = ExpK;
+			t->detailKind.kindInExp = kind;
+			t->lineno = lineno;
+		}
+		return t;
+
+}
+
+TreeNode * newOpNode(OpKind kind)
+{
+	TreeNode * t = (TreeNode *) malloc(sizeof(TreeNode));
+		int i;
+		if (t == NULL)
+			fprintf(listing, "Out of memory error at line %d\n", lineno);
+		else
+		{
+			for (i = 0; i < MAXCHILDREN; i++)
+				t->child[i] = NULL;
+			t->sibling = NULL;
+			t->nodekind = OpK;
+			t->detailKind.kindInOp = kind;
+			t->lineno = lineno;
+		}
+		return t;
+
+}
 /* Function copyString allocates and makes a new
  * copy of an existing string
  */
-char * copyString(char * s) {
+char * copyString(char * s)
+{
 	int n;
 	char * t;
 	if (s == NULL)
@@ -162,7 +205,8 @@ static indentno = 0;
 #define UNINDENT indentno-=2
 
 /* printSpaces indents by printing spaces */
-static void printSpaces(void) {
+static void printSpaces(void)
+{
 	int i;
 	for (i = 0; i < indentno; i++)
 		fprintf(listing, " ");
@@ -171,13 +215,18 @@ static void printSpaces(void) {
 /* procedure printTree prints a syntax tree to the 
  * listing file using indentation to indicate subtrees
  */
-void printTree(TreeNode * tree) {
+void printTree(TreeNode * tree)
+{
 	int i;
 	INDENT;
-	while (tree != NULL) {
+	while (tree != NULL)
+	{
 		printSpaces();
-		if (tree->nodekind == StmtK) {
-			switch (tree->kind.stmt) {
+
+		if (tree->nodekind == 0)
+		{
+			switch (tree->kind.stmt)
+			{
 			case IfK:
 				fprintf(listing, "If\n");
 				break;
@@ -197,8 +246,11 @@ void printTree(TreeNode * tree) {
 				fprintf(listing, "Unknown ExpNode kind\n");
 				break;
 			}
-		} else if (tree->nodekind == ExpK) {
-			switch (tree->kind.exp) {
+		}
+		else if (tree->nodekind == DecK)
+		{
+			switch (tree->kind.exp)
+			{
 			case OpK:
 				fprintf(listing, "Op: ");
 				printToken(tree->attr.op, "\0");
@@ -213,7 +265,8 @@ void printTree(TreeNode * tree) {
 				fprintf(listing, "Unknown ExpNode kind\n");
 				break;
 			}
-		} else
+		}
+		else
 			fprintf(listing, "Unknown node kind\n");
 		for (i = 0; i < MAXCHILDREN; i++)
 			printTree(tree->child[i]);

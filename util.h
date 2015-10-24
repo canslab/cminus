@@ -21,7 +21,18 @@ TreeNode * newStmtNode(StmtKind);
 /* Function newExpNode creates a new expression 
  * node for syntax tree construction
  */
-TreeNode * newExpNode(ExpKind);
+TreeNode * newDeclNode(DeclKind);
+
+
+/* Function newExpNode creates a new expression
+ * node for syntax tree construction
+ */
+TreeNode * newExpNode(ExpKind kind);
+
+
+
+TreeNode *newOpNode(OpKind kind);
+
 
 /* Function copyString allocates and makes a new
  * copy of an existing string

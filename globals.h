@@ -1,5 +1,6 @@
 /****************************************************/
 /* File: globals.h                                  */
+/* Yacc/Bison Version                               */
 /* Global types and vars for TINY compiler          */
 /* must come before other include files             */
 /* Compiler Construction: Principles and Practice   */
@@ -14,6 +15,98 @@
 #include <ctype.h>
 #include <string.h>
 
+
+typedef enum
+{
+	StmtK,		// statement node
+	DecK,		// declaration node
+	ExpK,
+	OpK			// operator node
+} NodeKind;
+
+typedef enum
+{
+	ExpK,
+	CmpK,		// compound statement
+	SelK,		// if statement
+	ItK,		// while statement
+	RetK,		// return statement
+	CallK		// call statement
+} StmtKind;
+
+typedef enum
+{
+	VarK,	// varaible declaration
+	FunK,	// function declaration
+	ParamK,	// parameter declaration
+} DeclKind;
+
+typedef enum
+{
+	ConstK, // Constant expression
+	IdK,	// id		expression
+	CalcK	// calculation expression   eg) a + b, a > b
+
+} ExpKind;
+
+typedef enum
+{
+	RelOpK,	// >=, <=, ...
+	MathOpK	// +, -, *, /
+}OpKind;
+
+/* ExpType is used for type checking */
+typedef enum {Void,Integer} ExpType;
+
+#define MAXCHILDREN 3
+
+typedef struct treeNode
+{
+	struct treeNode * child[MAXCHILDREN];
+	struct treeNode * sibling;
+	int lineno;
+
+	NodeKind nodekind;
+
+	union
+	{
+		DeclKind kindInDecl;
+		StmtKind kindInStmt;
+		ExpKind kindInExp;
+		OpKind	kindInOp;
+	} detailKind;
+
+	// it indicates attributes
+	TokenType tokType;			// it contains one of ( PLUS, MINUS, ...... )
+	int value;					// value
+	char *name;					// ex) name of the variable
+
+	ExpType type; /* for type checking of exps */
+} TreeNode;
+
+
+
+/* Yacc/Bison generates internally its own values
+ * for the tokens. Other files can access these values
+ * by including the tab.h file generated using the
+ * Yacc/Bison option -d ("generate header")
+ *
+ * The YYPARSER flag prevents inclusion of the tab.h
+ * into the Yacc/Bison output itself
+ */
+
+#ifndef YYPARSER
+
+/* the name of the following file may change */
+#include "y.tab.h"
+
+/* ENDFILE is implicitly defined by Yacc/Bison,
+ * and not included in the tab.h file
+ */
+#define ENDFILE 0
+
+#endif
+
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -23,25 +116,12 @@
 #endif
 
 /* MAXRESERVED = the number of reserved words */
-#define MAXRESERVED 6
+#define MAXRESERVED 8
 
-/* 2015-09-26 */
-/* Enumeration for C-minus Token Type */
-typedef enum
-/* book-keeping tokens */
-{
-	ENDFILE, ERROR,
-
-	/* reserved words for c-minus*/
-	ELSE, IF, INT, RETURN, VOID, WHILE,
-
-	/* multicharacter tokens */
-	ID, NUM,
-
-	/* special symbols */
-	PLUS, MINUS, TIMES, DIVISION, LT, LTEQ, GT, GTEQ, EQUAL, NOTEQ, ASSIGN, SEMICOLON,
-	COMMA, LPAREN, RPAREN, LSQUAREBRACKET, RSQUAREBRACKET, LCURLYBRACKET, RCURLYBRACKET
-} TokenType;
+/* Yacc/Bison generates its own integer values
+ * for tokens
+ */
+typedef int TokenType;
 
 extern FILE* source; /* source code text file */
 extern FILE* listing; /* listing output text file */
@@ -53,49 +133,6 @@ extern int lineno; /* source line number for listing */
 /***********   Syntax tree for parsing ************/
 /**************************************************/
 
-typedef enum
-{
-	StmtK, ExpK
-} NodeKind;
-
-typedef enum
-{
-	IfK, RepeatK, AssignK, ReadK, WriteK
-} StmtKind;
-
-typedef enum
-{
-	OpK, ConstK, IdK
-} ExpKind;
-
-/* ExpType is used for type checking */
-typedef enum
-{
-	Void, Integer, Boolean
-} ExpType;
-
-#define MAXCHILDREN 3
-
-typedef struct treeNode
-{
-	struct treeNode * child[MAXCHILDREN];
-	struct treeNode * sibling;
-	int lineno;
-	NodeKind nodekind;
-	union
-	{
-		StmtKind stmt;
-		ExpKind exp;
-	} kind;
-
-	union
-	{
-		TokenType op;
-		int val;
-		char * name;
-	} attr;
-	ExpType type; /* for type checking of exps */
-} TreeNode;
 
 /**************************************************/
 /***********   Flags for tracing       ************/
@@ -130,5 +167,5 @@ extern int TraceAnalyze;
 extern int TraceCode;
 
 /* Error = TRUE prevents further passes if an error occurs */
-extern int Error;
+extern int Error; 
 #endif

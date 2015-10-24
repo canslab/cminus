@@ -5,7 +5,7 @@
 /* Kenneth C. Louden                                */
 /****************************************************/
 
-#include "globals.h"
+#include "globals_old.h"
 
 /* set NO_PARSE to TRUE to get a scanner-only compiler */
 #define NO_PARSE TRUE
@@ -68,6 +68,8 @@ main(int argc, char * argv[])
 	}
 	listing = stdout; /* send listing to screen */
 	fprintf(listing, "\nC-MINUS COMPILATION: %s\n", pgm);
+
+
 	while (getToken()!=ENDFILE);
 
 #if NO_PARSE
