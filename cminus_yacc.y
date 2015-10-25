@@ -89,6 +89,7 @@ var_declaration		: type_specifier ID SEMICOLON
 					{
 						$$ = newDeclNode(VarK);
 						$$->child[0] = $1;	/* type specifier is the first child */
+						$$->bWithIndex = 0;
 						
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
@@ -101,6 +102,8 @@ var_declaration		: type_specifier ID SEMICOLON
 						$$->child[0] = $1;						/* type specifier is the first child */
 						$$->name = popFromNameStack();			/* assign string of ID to Node */
 						$$->lineno = popFromLineStack();		/* assign line number to Node */
+						$$->bWithIndex = 1;
+						
 						
 						TreeNode *numberNode = newExpNode(ConstK);	/* subscript index is included in the new number node */
 						numberNode->value = popFromNumberStack();	/* subscript index is the contents of the number node*/

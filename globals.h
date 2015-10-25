@@ -103,7 +103,6 @@ typedef enum
 {
 	RelOpK,	// >=, <=, ...
 	MathOpK	// +, -, *, /
-
 } OpKind;
 
 /* ExpType is used for type checking */
@@ -132,15 +131,13 @@ typedef struct treeNode
 	int value;					// value
 	char *name;					// ex) name of the variable
 
+
 	int bIfWithElse;				// it distinguishes "if" from "if-else"
 	int bReturnWithValue;
 	int bWithIndex;					// it distinguishes "normal var" from "array"
 
 	ExpType type; /* for type checking of exps */
 } TreeNode;
-
-
-
 
 /**************************************************/
 /***********   Flags for tracing       ************/

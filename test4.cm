@@ -1,0 +1,18 @@
+
+int main(void)
+{
+	int a[33];
+	
+	a[2] = 5;
+	return 0;
+}
+
+void func(int x, int y, int z, int k)
+{
+	int bb[3];
+	int cc[55];
+	
+	dgf = 30;
+	return;
+}
+
