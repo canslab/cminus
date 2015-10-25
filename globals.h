@@ -125,13 +125,13 @@ typedef struct treeNode
 		StmtKind kindInStmt;
 		ExpKind kindInExp;
 		OpKind	kindInOp;
-
 	} detailKind;
 
 	// it indicates attributes
 	TokenType tokType;			// it contains one of ( PLUS, MINUS, ...... )
 	int value;					// value
 	char *name;					// ex) name of the variable
+
 
 	ExpType type; /* for type checking of exps */
 } TreeNode;

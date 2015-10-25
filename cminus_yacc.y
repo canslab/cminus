@@ -19,6 +19,25 @@ static int savedLineNo;  /* ditto */
 static TreeNode * savedTree; /* stores syntax tree for later return */
 static int yylex(void); // added 11/2/11 to ensure no conflict with lex
 
+/* Codes that are below are related to the stack library */
+#define STACK_MAX	10
+
+int nameStackIndex = 0;
+int lineStackIndex = 0;
+int numberStackIndex = 0;
+
+char *nameStack[STACK_MAX];
+int lineStack[STACK_MAX];
+int numberStack[STACK_MAX];
+
+void pushToNameStack(char *str);
+void pushToLineStack(int noLine);
+void pushToNumberStack(int number);
+
+char *popFromNameStack();
+int popFromLineStack();
+int popFromNumberStack();
+
 %}
 
 %token IF RETURN ELSE WHILE VOID INT
@@ -37,7 +56,7 @@ program				: declaration_list
 					;
 
 /* 2 */
-declaration_list	: declaration_list declaration	/* declaration_list -> declaration_list declaration */
+declaration_list	: declaration_list declaration	
 					{
 						YYSTYPE t = $1;
 						if ( t != NULL )
@@ -66,43 +85,44 @@ declaration			: var_declaration	{ $$ = $1; }
 					;
 
 /* 4 */
-var_declaration		: type_specifier ID { savedName = copyString(tokenString); } SEMICOLON
+var_declaration		: type_specifier ID SEMICOLON
 					{
 						$$ = newDeclNode(VarK);
 						$$->child[0] = $1;	/* type specifier is the first child */
 						
-						/*  NOTE I can't ensure that it would be all right.. */
-						$$->name = savedName;						
+						$$->name = popFromNameStack();
+						$$->lineno = popFromLineStack();
 				
 					}
-					| type_specifier ID { savedName = copyString(tokenString); }
-					  LSQUAREBRACKET NUM {savedNumber = atoi(tokenString); } RSQUAREBRACKET SEMICOLON
+					| type_specifier ID 
+					  LSQUAREBRACKET NUM RSQUAREBRACKET SEMICOLON
 					{
 						$$ = newDeclNode(VarK);
-						$$->child[0] = $1;				/* type specifier is the first child */
-						$$->name = savedName;			/* assign string of ID to Node */
+						$$->child[0] = $1;						/* type specifier is the first child */
+						$$->name = popFromNameStack();			/* assign string of ID to Node */
+						$$->lineno = popFromLineStack();		/* assign line number to Node */
 						
 						TreeNode *numberNode = newExpNode(ConstK);	/* subscript index is included in the new number node */
-						numberNode->value = savedNumber;			/* subscript index is the contents of the number node*/
+						numberNode->value = popFromNumberStack();	/* subscript index is the contents of the number node*/
 						
 						$$->child[1] = numberNode;		/* subscript index is the second child*/
 					}
 					;
 			
 /* 5 */	
-type_specifier  	: INT   { $$ = newExpNode(TypeK); $$->tokType = INT; }
-					| VOID	{ $$ = newExpNode(TypeK); $$->tokType = VOID; }
+type_specifier  	: INT   { $$ = newExpNode(TypeK); $$->name = "int";  $$->tokType = INT; }
+					| VOID	{ $$ = newExpNode(TypeK); $$->name = "void"; $$->tokType = VOID; }
 					;
 
 /* 6 */
-fun_declaration		: type_specifier ID { savedName = copyString(tokenString); }
-					  LPAREN params RPAREN compound_stmt
+fun_declaration		: type_specifier ID LPAREN params RPAREN compound_stmt
 					{
 						$$ = newDeclNode(FunK);
 						$$->child[0] = $1;
-						$$->name = savedName;
-						$$->child[1] = $5;
-						$$->child[2] = $7;
+						$$->name = popFromNameStack();
+						$$->lineno = popFromLineStack();
+						$$->child[1] = $4;
+						$$->child[2] = $6;
 					}
 					;
 					
@@ -141,14 +161,16 @@ param				: type_specifier ID
 					{
 						$$ = newDeclNode(ParamK);
 						$$->child[0] = $1;
-						$$->name = copyString(tokenString);
+						$$->name = popFromNameStack();
+						$$->lineno = popFromLineStack();
 					}
-					| type_specifier ID { savedName = copyString(tokenString); }
-					  LSQUAREBRACKET RSQUAREBRACKET
+					| type_specifier ID LSQUAREBRACKET RSQUAREBRACKET
 					{
 						$$ = newDeclNode(ParamK);
 						$$->child[0] = $1;
-						$$->name = savedName;
+						
+						$$->name = popFromNameStack();
+						$$->lineno = popFromLineStack();
 					}
 					;
 
@@ -277,13 +299,15 @@ expression			: var ASSIGN expression
 var					: ID
 					{
 						$$ = newExpNode(IdK);
-						$$->name = copyString(tokenString);
+						$$->name = popFromNameStack();
+						$$->lineno = popFromLineStack();
 					}
-					| ID { savedName = copyString(tokenString); } LSQUAREBRACKET expression RSQUAREBRACKET
+					| ID LSQUAREBRACKET expression RSQUAREBRACKET
 					{
 						$$ = newExpNode(IdK);
-						$$->name = savedName;
-						$$->child[0] = $4;
+						$$->name = popFromNameStack();
+						$$->lineno = popFromLineStack();
+						$$->child[0] = $3;
 					}
 					;
 
@@ -364,18 +388,19 @@ factor				: LPAREN expression RPAREN
 					| NUM
 					{
 						TreeNode *numberNode = newExpNode(ConstK);
-						numberNode->value = atoi(tokenString);
+						numberNode->value = popFromNumberStack();
 						
 						$$ = numberNode;
 					}
 					;
 
 /* 27 */
-call				: ID {savedName = copyString(tokenString); } LPAREN args RPAREN
+call				: ID LPAREN args RPAREN
 					{
 						$$ = newStmtNode(CallK);
-						$$->name = savedName;
-						$$->child[0] = $4;
+						$$->name = popFromNameStack();
+						$$->lineno = popFromLineStack();
+						$$->child[0] = $3;
 					}
 					;
 
@@ -414,20 +439,62 @@ arg_list			: arg_list COMMA expression
 					;
 %%
 
+void pushToNameStack(char *str)
+{
+	nameStack[nameStackIndex++] = str;
+}
+
+void pushToLineStack(int noLine)
+{
+	lineStack[lineStackIndex++] = noLine;
+}
+
+void pushToNumberStack(int number)
+{
+	numberStack[numberStackIndex++] = number;
+}
+
+char *popFromNameStack()
+{
+	return nameStack[--nameStackIndex];	
+}
+int popFromLineStack()
+{
+	return lineStack[--lineStackIndex];
+}
+
+int popFromNumberStack()
+{
+	return numberStack[--numberStackIndex];
+}
+
 int yyerror(char * message)
-{ fprintf(listing,"Syntax error at line %d: %s\n",lineno,message);
-  fprintf(listing,"Current token: ");
-  printToken(yychar,tokenString);
-  Error = TRUE;
-  return 0;
+{
+	fprintf(listing,"Syntax error at line %d: %s\n",lineno,message);
+  	fprintf(listing,"Current token: ");
+  	printToken(yychar,tokenString);
+  	Error = TRUE;
+  	
+  	return 0;
 }
 
 /* yylex calls getToken to make Yacc/Bison output
  * compatible with ealier versions of the TINY scanner
  */
 static int yylex(void)
-{ return getToken();
- }
+{
+	TokenType token = getToken();
+	if ( token == ID )
+	{
+		pushToNameStack (copyString(tokenString));
+		pushToLineStack	(lineno);
+	}
+	else if ( token == NUM )
+	{
+		pushToNumberStack (atoi(tokenString));
+	}
+	return token;
+}
 
 TreeNode * parse(void)
 { 

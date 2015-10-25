@@ -255,13 +255,13 @@ void printTree(TreeNode * tree)
 			switch (tree->detailKind.kindInDecl)
 			{
 			case VarK:
-				fprintf(listing, "Var declaration: \n");
+				fprintf(listing, "Var declaration =  %s\n", tree->name);
 				break;
 			case FunK:
-				fprintf(listing, "Func declaration \n");
+				fprintf(listing, "Func declaration = %s\n", tree->name);
 				break;
 			case ParamK:
-				fprintf(listing, "Param Declaration \n");
+				fprintf(listing, "Param Declaration = %s\n", tree->name);
 				break;
 			default:
 				fprintf(listing, "Unknown Declaration kind\n");
@@ -273,7 +273,7 @@ void printTree(TreeNode * tree)
 			switch (tree->detailKind.kindInExp)
 			{
 			case ConstK:
-				fprintf(listing, "Constant Expression.. \n");
+				fprintf(listing, "Constant Expression.. value = %d \n", tree->value);
 				break;
 			case IdK:
 				fprintf(listing, "Id Expression.. \n");

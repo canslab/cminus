@@ -40,11 +40,11 @@ lex.yy.o: cminus.l scan.h util.h globals.h
 
 clean:
 	-rm cminus_parse
-	-rm tm
+	# -rm tm
 	-rm $(OBJSPARSE)
 
-tm: tm.c
-	$(CC) $(CFLAGS) tm.c -o tm
+#tm: tm.c
+#	$(CC) $(CFLAGS) tm.c -o tm
 
-all: cminus_parse tm
+all: cminus_parse
 
