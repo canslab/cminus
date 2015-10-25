@@ -115,6 +115,8 @@ TreeNode * newStmtNode(StmtKind kind)
 		t->nodekind =  StmtK;
 		t->detailKind.kindInStmt = kind;
 		t->lineno = lineno;
+		t->bIfWithElse = -1;
+		t->bReturnWithValue = -1;
 	}
 	return t;
 }
@@ -154,6 +156,7 @@ TreeNode * newExpNode(ExpKind kind)
 			t->nodekind = ExpK;
 			t->detailKind.kindInExp = kind;
 			t->lineno = lineno;
+			t->bWithIndex = -1;
 		}
 		return t;
 
@@ -228,22 +231,28 @@ void printTree(TreeNode * tree)
 			switch (tree->detailKind.kindInStmt)
 			{
 			case SelK:
-				fprintf(listing, "If\n");
+				if (tree->bIfWithElse == 1)
+					fprintf(listing, "If with Else \n");
+				else
+					fprintf(listing, "If \n");
 				break;
 			case CmpK:
 				fprintf(listing, "Compound statement \n");
 				break;
 			case AssignK:
-				fprintf(listing, "Assign to: \n");
+				fprintf(listing, "Assignment: \n");
 				break;
 			case ItK:
 				fprintf(listing, "While statement \n");
 				break;
 			case RetK:
-				fprintf(listing, "Return Statement \n");
+				if (tree->bReturnWithValue == 1)
+					fprintf(listing, "Return Statement with value \n");
+				else
+					fprintf(listing,"Return Statement with no value \n");
 				break;
 			case CallK:
-				fprintf(listing, "Call statement \n");
+				fprintf(listing, "Call statement => %s\n", tree->name);
 				break;
 			default:
 				fprintf(listing, "Unknown ExpNode kind\n");
@@ -255,13 +264,13 @@ void printTree(TreeNode * tree)
 			switch (tree->detailKind.kindInDecl)
 			{
 			case VarK:
-				fprintf(listing, "Var declaration =  %s\n", tree->name);
+				fprintf(listing, "Var declaration => %s\n", tree->name);
 				break;
 			case FunK:
-				fprintf(listing, "Func declaration = %s\n", tree->name);
+				fprintf(listing, "Func declaration => %s\n", tree->name);
 				break;
 			case ParamK:
-				fprintf(listing, "Param Declaration = %s\n", tree->name);
+				fprintf(listing, "Param Declaration => %s\n", tree->name);
 				break;
 			default:
 				fprintf(listing, "Unknown Declaration kind\n");
@@ -273,16 +282,16 @@ void printTree(TreeNode * tree)
 			switch (tree->detailKind.kindInExp)
 			{
 			case ConstK:
-				fprintf(listing, "Constant Expression.. value = %d \n", tree->value);
+				fprintf(listing, "Constant Expression => %d \n", tree->value);
 				break;
 			case IdK:
-				fprintf(listing, "Id Expression.. \n");
+				fprintf(listing, "Id Expression => %s \n", tree->name );
 				break;
 			case CalcK:
-				fprintf(listing, "Calculation Expression.. \n");
+				fprintf(listing, "Calculation Expression => %s \n", tree->name );
 				break;
 			case TypeK:
-				fprintf(listing, "Type-specific Expression.. \n");
+				fprintf(listing, "Type-specific Expression => %s \n", tree->name);
 				break;
 			default:
 				fprintf(listing, "Unknown Expression Kind..\n");
@@ -294,13 +303,13 @@ void printTree(TreeNode * tree)
 			switch (tree->detailKind.kindInOp)
 			{
 			case RelOpK:
-				fprintf(listing, "Relative Comparison Opeartion .. \n");
+				fprintf(listing, "Relative Comparison Opeartion\n");
 				break;
 			case MathOpK:
-				fprintf(listing, "Math Operation .. \n");
+				fprintf(listing, "Math Operation \n");
 				break;
 			default:
-				fprintf(listing, "Unknown Operation Kind.. \n");
+				fprintf(listing, "Unknown Operation Kind \n");
 				break;
 			}
 		}

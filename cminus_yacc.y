@@ -247,12 +247,20 @@ expression_stmt		: expression SEMICOLON
 selection_stmt		: IF LPAREN expression RPAREN statement 
 					{
 						$$ = newStmtNode(SelK);
+						$$->tokType = IF;
+						$$->name = "if";
+						$$->bIfWithElse = 0;
+						
 						$$->child[0] = $3;
 						$$->child[1] = $5;
 					}
 					| IF LPAREN expression RPAREN statement ELSE statement
 					{
 						$$ = newStmtNode(SelK);
+						$$->tokType = IF;
+						$$->name = "if else";
+						$$->bIfWithElse = 1;
+						
 						$$->child[0] = $3;
 						$$->child[1] = $5;
 						$$->child[2] = $7;
@@ -263,6 +271,9 @@ selection_stmt		: IF LPAREN expression RPAREN statement
 iteration_stmt		: WHILE LPAREN expression RPAREN statement 
 					{ 
 						$$ = newStmtNode(ItK);
+						$$->tokType = WHILE;
+						$$->name = "while";
+						
 						$$->child[0] = $3;
 						$$->child[1] = $5;
 					}	
@@ -272,11 +283,20 @@ iteration_stmt		: WHILE LPAREN expression RPAREN statement
 return_stmt			: RETURN SEMICOLON
 					{
 						$$ = newStmtNode(RetK);
+						$$->tokType = RETURN;
+						$$->name = "return";
+						$$->bReturnWithValue = 0;
+						
 						$$->child[0] = NULL;
+						
 					} 
 					| RETURN expression SEMICOLON
 					{
 						$$ = newStmtNode(RetK);
+						$$->tokType = RETURN;
+						$$->name = "return with value";
+						$$->bReturnWithValue = 1;
+						
 						$$->child[0] = $2;
 					}
 					;
@@ -286,6 +306,8 @@ expression			: var ASSIGN expression
 					{
 						$$ = newStmtNode(AssignK);
 						$$->tokType = ASSIGN;
+						$$->name = "assign";
+						
 						$$->child[0] = $1;
 						$$->child[1] = $3;
 					} 
@@ -299,12 +321,18 @@ expression			: var ASSIGN expression
 var					: ID
 					{
 						$$ = newExpNode(IdK);
+						$$->tokType = ID;
+						$$->bWithIndex = 0;
+						
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
 					}
 					| ID LSQUAREBRACKET expression RSQUAREBRACKET
 					{
 						$$ = newExpNode(IdK);
+						$$->tokType = ID;
+						$$->bWithIndex = 1;
+						
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
 						$$->child[0] = $3;
@@ -315,7 +343,10 @@ var					: ID
 simple_expression	: additive_expression relop additive_expression
 					{
 						$$ = newExpNode(CalcK);
+						$$->name = copyString($2->name);
 						$$->tokType = $2->tokType;
+						free($2);
+						
 						$$->child[0] = $1;
 						$$->child[1] = $3;
 					}
@@ -326,12 +357,12 @@ simple_expression	: additive_expression relop additive_expression
 					;
 
 /* 21 */
-relop				: LTEQ  { $$ = newOpNode(RelOpK); $$->tokType = LTEQ;  }
-					| LT	{ $$ = newOpNode(RelOpK); $$->tokType = LT;    } 
-					| GT	{ $$ = newOpNode(RelOpK); $$->tokType = GT;    }
-					| GTEQ	{ $$ = newOpNode(RelOpK); $$->tokType = GTEQ;  }
-					| EQUAL	{ $$ = newOpNode(RelOpK); $$->tokType = EQUAL; }
-					| NOTEQ	{ $$ = newOpNode(RelOpK); $$->tokType = NOTEQ; }
+relop				: LTEQ  { $$ = newOpNode(RelOpK); $$->tokType = LTEQ; $$->name = "<="; }
+					| LT	{ $$ = newOpNode(RelOpK); $$->tokType = LT;   $$->name = "<";  } 
+					| GT	{ $$ = newOpNode(RelOpK); $$->tokType = GT;   $$->name = ">"; }
+					| GTEQ	{ $$ = newOpNode(RelOpK); $$->tokType = GTEQ; $$->name = ">="; }
+					| EQUAL	{ $$ = newOpNode(RelOpK); $$->tokType = EQUAL; $$->name = "=="; }
+					| NOTEQ	{ $$ = newOpNode(RelOpK); $$->tokType = NOTEQ; $$->name = "!=";}
 					;
 
 /* 22 */
@@ -339,6 +370,9 @@ additive_expression : additive_expression addop term
 					{
 						$$ = newExpNode(CalcK); 
 						$$->tokType = $2->tokType;
+						$$->name = copyString($2->name);
+						free($2);
+						
 						$$->child[0] = $1;
 						$$->child[1] = $3;
 					}
@@ -349,16 +383,19 @@ additive_expression : additive_expression addop term
 					;
 
 /* 23 */
-addop				: PLUS { $$ = newOpNode(MathOpK); $$->tokType = PLUS; }
-					| MINUS	{ $$ = newOpNode(MathOpK); $$->tokType = MINUS; }
+addop				: PLUS { $$ = newOpNode(MathOpK); $$->tokType = PLUS; $$->name = "+"; }
+					| MINUS	{ $$ = newOpNode(MathOpK); $$->tokType = MINUS; $$->name = "-"; }
 					;
 
 /* 24 */
 term				: term mulop factor
 					{
 						$$ = newExpNode(CalcK);
-						$$->child[0] = $1;
 						$$->tokType = $2->tokType;
+						$$->name = copyString($2->name);
+						free($2);
+						
+						$$->child[0] = $1;						
 						$$->child[1] = $3;
 					} 
 					| factor
@@ -368,8 +405,8 @@ term				: term mulop factor
 					;
 				
 /* 25 */
-mulop				: TIMES		{ $$ = newOpNode(MathOpK); $$->tokType = TIMES; }
-					| DIVISION	{ $$ = newOpNode(MathOpK); $$->tokType = DIVISION; }
+mulop				: TIMES		{ $$ = newOpNode(MathOpK); $$->tokType = TIMES; $$->name = "*"; }
+					| DIVISION	{ $$ = newOpNode(MathOpK); $$->tokType = DIVISION; $$->name = "/"; }
 					;
 			
 /* 26 */
