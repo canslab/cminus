@@ -87,7 +87,6 @@ typedef enum
 	VarK,	// varaible declaration
 	FunK,	// function declaration
 	ParamK,	// parameter declaration
-
 } DeclKind;
 
 typedef enum

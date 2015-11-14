@@ -40,7 +40,7 @@ FILE * code;
 int EchoSource = TRUE;					//
 int TraceScan = FALSE;					//
 int TraceParse = TRUE;
-int TraceAnalyze = FALSE;
+int TraceAnalyze = TRUE;
 int TraceCode = FALSE;
 
 int Error = FALSE;
@@ -81,6 +81,9 @@ main(int argc, char * argv[])
 		fprintf(listing, "\nSyntax tree:\n");
 		printTree(syntaxTree);
 	}
+	buildSymtab(syntaxTree);
+
+
 #if !NO_ANALYZE
 	if (!Error)
 	{

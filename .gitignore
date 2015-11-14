@@ -22,3 +22,5 @@ tiny
 cminus_flex
 
 lex.yy.c
+
+cminus_parse

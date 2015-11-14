@@ -9,17 +9,47 @@
 #ifndef _SYMTAB_H_
 #define _SYMTAB_H_
 
+#include "globals.h"
+
+/* the list of line numbers of the source
+ * code in which a variable is referenced
+ */
+typedef struct LineListRec
+{
+	int lineno;
+	struct LineListRec * next;
+}* LineList;
+
+/* The record in the bucket lists for
+ * each variable, including name,
+ * assigned memory location, and
+ * the list of line numbers in which
+ * it appears in the source code
+ */
+typedef struct BucketListRec
+{
+	char * name;				// name
+	int scope;					// scope information
+	int location;				// location (= nested level)
+	LineList lines;				// line number list
+	int	type;					// type information, 1 means int; 0 means void
+	int isFunction;				// true : function,   false : variable
+
+	int memloc; /* memory location for variable */
+	struct BucketListRec * next;
+}* BucketList;
+
 /* Procedure st_insert inserts line numbers and
  * memory locations into the symbol table
  * loc = memory location is inserted only the
  * first time, otherwise ignored
  */
-void st_insert( char * name, int lineno, int loc );
+void st_insert( char * _name, int _scope, int _location, int _type, int _isFunction, int _lineno);
 
 /* Function st_lookup returns the memory 
  * location of a variable or -1 if not found
  */
-int st_lookup ( char * name );
+int st_lookup ( char * _name, int _scope );
 
 /* Procedure printSymTab prints a formatted 
  * listing of the symbol table contents 

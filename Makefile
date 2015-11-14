@@ -1,10 +1,11 @@
 
 CC = gcc
 
-CFLAGS = 
+# debug option
+CFLAGS = -g	 
 
 #OBJS = main.o util.o scan.o #parse.o symtab.o analyze.o code.o cgen.o
-OBJSPARSE = main.o util.o parse.o lex.yy.o 
+OBJSPARSE = main.o util.o parse.o lex.yy.o symtab.o analyze.o 
 
 #cminus: $(OBJS)
 #	$(CC) $(CFLAGS) $(OBJS) -o cminus
@@ -18,11 +19,11 @@ util.o: util.c util.h globals.h
 parse.o: parse.c parse.h scan.h globals.h util.h
 	$(CC) $(CFLAGS) -c parse.c
 
-#symtab.o: symtab.c symtab.h
-#	$(CC) $(CFLAGS) -c symtab.c
+symtab.o: symtab.c symtab.h globals.h
+	$(CC) $(CFLAGS) -c symtab.c
 
-#analyze.o: analyze.c globals.h symtab.h analyze.h
-#	$(CC) $(CFLAGS) -c analyze.c
+analyze.o: analyze.c globals.h symtab.h analyze.h globals.h
+	$(CC) $(CFLAGS) -c analyze.c
 
 #code.o: code.c code.h globals.h
 #	$(CC) $(CFLAGS) -c code.c
@@ -31,8 +32,8 @@ parse.o: parse.c parse.h scan.h globals.h util.h
 #	$(CC) $(CFLAGS) -c cgen.c
 
 #by flex, yacc
-cminus_parse: main.o util.o parse.o lex.yy.o
-	$(CC) $(CFLAGS) main.o util.o parse.o lex.yy.o -o cminus_parse -lfl
+cminus_parse: main.o util.o parse.o lex.yy.o symtab.o analyze.o
+	$(CC) $(CFLAGS) main.o util.o parse.o lex.yy.o symtab.o analyze.o -o cminus_parse -lfl
 
 lex.yy.o: cminus.l scan.h util.h globals.h
 	flex -o lex.yy.c cminus.l

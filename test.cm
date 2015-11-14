@@ -1,11 +1,21 @@
-/* A Program to perform Euclid`s
-   Algorithm to computer gcd */
+/* dd
+*/
 
 int gcd (int u, int v)
 {
+	int test[3];
     if (v == 0) return u;
     else return gcd(v,u-u/v*v);
-    /* u-u/v*v == u mod v */
+    
+    if(1)
+    {
+    	int k;
+    }
+    k = 45;
+    
+    
+    return 344;
+	/* eweraewrawer */
 }
 
 void main(void)
