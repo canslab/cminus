@@ -316,8 +316,8 @@ void printSymbolTable_AtScope(FILE *_pListing, ScopeListEntity *_pScopeListEntit
 {
 	
 	int i;
-	fprintf(_pListing, "Variable Name  Variable Type   Location   LineNumbers\n");
-	fprintf(_pListing, "-------------  -------------   --------   -----------\n");
+	fprintf(_pListing, "Variable Name  Variable Type   Location   LineNumbers    \n");
+	fprintf(_pListing, "-------------  -------------   --------   ---------------\n");
 	
 	for (i = 0; i < SIZE; i++)
 	{
@@ -328,12 +328,12 @@ void printSymbolTable_AtScope(FILE *_pListing, ScopeListEntity *_pScopeListEntit
 			while (pTempBucketListEntity != NULL)
 			{
 				LineListEntity *pTempLineListEntity = pTempBucketListEntity->pLineList;
-				fprintf(_pListing, "%-14s", pTempBucketListEntity->pszName);
-				fprintf(_pListing, "%-13d", pTempBucketListEntity->bType);
-				fprintf(_pListing, "%-8d", pTempBucketListEntity->nMemloc);
+				fprintf(_pListing, "%-16s", pTempBucketListEntity->pszName);
+				fprintf(_pListing, "%-16s", (pTempBucketListEntity->bType == 1)?"int":"void");
+				fprintf(_pListing, "%-7d", pTempBucketListEntity->nMemloc);
 				while (pTempLineListEntity != NULL)
 				{
-					fprintf(_pListing, "%4d ", pTempLineListEntity->nLine);
+					fprintf(_pListing, "%4d", pTempLineListEntity->nLine);
 					pTempLineListEntity = pTempLineListEntity->pNext;
 				}
 				fprintf(_pListing, "\n");
@@ -355,9 +355,9 @@ void printSymbolTable(FILE *_pListing)
 			while (pTempScopeListEntity != NULL)
 			{
 				fprintf(_pListing, "Scope name : %s\n", pTempScopeListEntity->pszName);
-				fprintf(_pListing, "-----------------------------------------------------\n");
+				fprintf(_pListing, "----------------------------------------------------------\n");
 				printSymbolTable_AtScope(_pListing, pTempScopeListEntity);
-				fprintf(_pListing, "------------------------------------------------------\n\n\n\n");
+				fprintf(_pListing, "----------------------------------------------------------\n\n\n\n");
 				pTempScopeListEntity = pTempScopeListEntity->pNext;
 			}
 		}

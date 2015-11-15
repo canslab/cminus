@@ -56,8 +56,12 @@ whitespace  [ \t]+
 					char c;
                   	for(;;)
                   	{
-                  	
-                  		while ( (c = input()) != '*' && c != EOF );
+                		
+                  		while ( (c = input()) != '*' && c != EOF )
+                  		{
+                  			if ( c == '\n')
+                  				lineno++;
+                  		}
                   		
                   		if ( c == '*' )
                   		{

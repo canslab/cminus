@@ -37,8 +37,8 @@ FILE * listing;
 FILE * code;
 
 /* allocate and set tracing flags */
-int EchoSource = TRUE;					//
-int TraceScan = FALSE;					//
+int EchoSource = TRUE;
+int TraceScan = FALSE;
 int TraceParse = FALSE;
 int TraceAnalyze = TRUE;
 int TraceCode = FALSE;
@@ -82,7 +82,7 @@ main(int argc, char * argv[])
 		printTree(syntaxTree);
 	}
 	buildSymtab(syntaxTree);
-
+	typeCheck(syntaxTree);
 
 #if !NO_ANALYZE
 	if (!Error)

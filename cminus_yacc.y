@@ -113,8 +113,8 @@ var_declaration		: type_specifier ID SEMICOLON
 					;
 			
 /* 5 */	
-type_specifier  	: INT   { $$ = newExpNode(TypeK); $$->name = "int";  $$->tokType = INT; }
-					| VOID	{ $$ = newExpNode(TypeK); $$->name = "void"; $$->tokType = VOID; }
+type_specifier  	: INT   { $$ = newExpNode(TypeK); $$->name = copyString("int"); $$->bDataType = Integer; }
+					| VOID	{ $$ = newExpNode(TypeK); $$->name = copyString("void"); $$->bDataType = Void; }
 					;
 
 /* 6 */
@@ -327,6 +327,7 @@ var					: ID
 						$$ = newExpNode(IdK);
 						$$->tokType = ID;
 						$$->bWithIndex = 0;
+						$$->bDataType = Integer;
 						
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
@@ -336,6 +337,7 @@ var					: ID
 						$$ = newExpNode(IdK);
 						$$->tokType = ID;
 						$$->bWithIndex = 1;
+						$$->bDataType = Integer;
 						
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
@@ -430,6 +432,7 @@ factor				: LPAREN expression RPAREN
 					{
 						TreeNode *numberNode = newExpNode(ConstK);
 						numberNode->value = popFromNumberStack();
+						numberNode->bDataType = Integer;
 						
 						$$ = numberNode;
 					}

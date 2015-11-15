@@ -2,7 +2,7 @@
 CC = gcc
 
 # debug option
-CFLAGS = -g	 
+CFLAGS = -g	-w
 
 #OBJS = main.o util.o scan.o #parse.o symtab.o analyze.o code.o cgen.o
 OBJSPARSE = main.o util.o parse.o lex.yy.o symtab.o analyze.o 

@@ -1,24 +1,34 @@
-/*
-*/
+/* 
 
-int gcd (int u, int v)
+
+
+
+
+*/
+int test(int x)
+{
+	
+	x = 3 + 5;
+}
+
+int gcd (int u, int v, int g[])
 {
     if (v == 0) return u;
     else return gcd(v,u-u/v*v);
     /* u-u/v*v == u mod v */
 }
+/*
+
+	This Algorithm!!
+
+
+
+
+*/
 
 void main(void)
 {
     int x; int y;
-    int jaeyong;
     x = input(); y = input();
     output(gcd(x,y));
-    
-    while(1)
-    {
-    	int jaeyong;
-    }
-    jaeyong = 4;
-   	
 }

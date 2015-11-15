@@ -26,24 +26,29 @@ char * getNewScope(TreeNode * t)
 		{
 			result = (char *)malloc(sizeof(char)* (strlen(gScope) + strlen(t->name) + 3));
 			sprintf(result, "%s:%s", gScope, t->name);
+			gLocation++;
 		}
 	}
 	else if (t->nodekind == StmtK)
 	{
 		if ((t->detailKind).kindInStmt == CmpK)
 		{
-			 /* when you declare function, the scope of first tcompound statment is as same as function declartion's scope*/
+			/* normal compound statement, ( if, while, just {}, etc.. )*/
 			if (gbNowFunctionDeclaration == 0)
 			{
 				result = (char *)malloc(sizeof(char) * (strlen(gScope) + 12));
 				sprintf(result, "%s:%d\0", gScope, t->lineno);
+				gLocation++;
 			}
+			/* when you declare function, the scope of first tcompound statment is as same as function declartion's scope*/
 			else
 			{
 				result = NULL;
 				// set gbNowFunctionDeclaration to 0
 				gbNowFunctionDeclaration = 0;
 			}
+
+
 		}
 	}
 
@@ -181,7 +186,7 @@ static void insertNode(TreeNode * t)
 			if (pTemp == NULL)
 			{
 				gbNowFunctionDeclaration = 1;
-				if (t->child[0]->tokType == INT)
+				if (t->child[0]->bDataType == Integer)
 				{
 					st_insert_atCharScope("",t->name, 1, gLocation,0,t->lineno);
 				}
@@ -225,14 +230,58 @@ static void insertNode(TreeNode * t)
 	}
 }
 
+static void insertBultinFunctions(TreeNode **_pSyntaxtree)
+{
+	TreeNode *inputFunctionNode = NULL;
+	TreeNode *outputFunctionNode = NULL;
+
+	inputFunctionNode = newDeclNode(FunK);
+	outputFunctionNode = newDeclNode(FunK);
+
+	inputFunctionNode->name = copyString("input");
+	outputFunctionNode->name = copyString("output");
+
+	inputFunctionNode->lineno = 0;
+	outputFunctionNode->lineno = 0;
+
+	inputFunctionNode->detailKind.kindInDecl = FunK;
+	outputFunctionNode->detailKind.kindInDecl = FunK;
+
+	inputFunctionNode->bReturnWithValue = 1;
+	outputFunctionNode->bReturnWithValue = 0;
+
+	inputFunctionNode->child[0] = newExpNode(TypeK);
+	outputFunctionNode->child[0] = newExpNode(TypeK);
+
+	inputFunctionNode->child[0]->name = copyString("int");
+	outputFunctionNode->child[0]->name = copyString("void");
+
+	inputFunctionNode->child[0]->bDataType = Integer;
+	outputFunctionNode->child[0]->bDataType = Void;
+
+	outputFunctionNode->child[1] = newDeclNode(ParamK);
+	outputFunctionNode->child[1]->name = copyString("arg");
+	outputFunctionNode->child[1]->lineno = 0;
+	outputFunctionNode->child[1]->child[0] = newExpNode(TypeK);
+	outputFunctionNode->child[1]->child[0]->bDataType = Integer;
+	outputFunctionNode->child[1]->child[0]->name = (char*)copyString("int");
+	outputFunctionNode->child[1]->sibling = NULL;
+
+	inputFunctionNode->sibling = *_pSyntaxtree;
+	*_pSyntaxtree = inputFunctionNode;
+
+	outputFunctionNode->sibling = *_pSyntaxtree;
+	*_pSyntaxtree = outputFunctionNode;
+}
+
 /* Function buildSymtab constructs the symbol 
  * table by preorder traversal of the syntax tree
  */
 void buildSymtab(TreeNode * syntaxTree)
 {
 	// input & output already in symbol table
-	st_insert_atCharScope("", "input", 1, 0, 0, 0);
-	st_insert_atCharScope("", "output", 0, 0, 0, 0);
+	insertBultinFunctions(&syntaxTree);
+
 	traverse(syntaxTree, insertNode, nullProc);
 
 	if (TraceAnalyze)
@@ -246,7 +295,10 @@ void buildSymtab(TreeNode * syntaxTree)
 		fprintf(listing, "\nThere should be main function !\n");
 		exit(-4);
 	}
+
 }
+
+
 
 static void typeError(TreeNode * t, char * message)
 {
@@ -259,6 +311,22 @@ static void typeError(TreeNode * t, char * message)
  */
 static void checkNode(TreeNode * t)
 {
+	switch (t->nodekind)
+	{
+	case ExpK:
+		// +, *, -, /, <=, >=, ==, !=, >, <
+		if ((t->detailKind).kindInExp == CalcK)
+		{
+//			if (t->child[0])
+		}
+
+		break;
+
+	default:
+		break;
+	}
+
+
 //	switch (t->nodekind)
 //	{
 //	case ExpK:

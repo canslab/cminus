@@ -126,16 +126,16 @@ typedef struct treeNode
 	} detailKind;
 
 	// it indicates attributes
-	TokenType tokType;			// it contains one of ( PLUS, MINUS, ...... )
-	int value;					// value
-	char *name;					// ex) name of the variable
+	TokenType tokType;				// it contains one of ( PLUS, MINUS, ...... )
+	int value;						// value
+	char *name;						// ex) name of the variable
 
 
 	int bIfWithElse;				// it distinguishes "if" from "if-else"
 	int bReturnWithValue;
 	int bWithIndex;					// it distinguishes "normal var" from "array"
 
-	ExpType type; /* for type checking of exps */
+	ExpType bDataType;				 /* for type checking of exps */
 } TreeNode;
 
 /**************************************************/
