@@ -12,14 +12,15 @@ typedef struct LineListEntity
 
 typedef struct BucketListEntity
 {
-	char *pszName;
+	char *pszName;		// name of the symbol
 
 	struct BucketListEntity *pNext;
 	LineListEntity *pLineList;
 
-	int nMemloc;
-	int bArray;
-	int bType;
+	int nMemloc;		// memory location
+	int bArray;			// array or not
+	int bType;			// int or void
+	int nArguments;		// if this symbol is function, then # of arguments
 
 } BucketListEntity;
 

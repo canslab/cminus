@@ -133,6 +133,7 @@ typedef struct treeNode
 	int bIfWithElse;				// it distinguishes "if" from "if-else"
 	int bReturnWithValue;
 	int bWithIndex;					// it distinguishes "normal var" from "array"
+	int nArgument;					// # of argument in function declaration.
 
 	ExpType bDataType;				 /* for type checking of exps */
 } TreeNode;

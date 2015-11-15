@@ -138,6 +138,7 @@ TreeNode * newDeclNode(DeclKind kind)
 		t->nodekind = DecK;
 		t->detailKind.kindInDecl = kind;
 		t->lineno = lineno;
+		t->nArgument = 0;
 	}
 	return t;
 }

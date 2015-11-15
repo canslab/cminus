@@ -19,6 +19,8 @@ static int savedLineNo;  /* ditto */
 static TreeNode * savedTree; /* stores syntax tree for later return */
 static int yylex(void); // added 11/2/11 to ensure no conflict with lex
 
+int nFunctionParameter = 0;
+
 /* Codes that are below are related to the stack library */
 #define STACK_MAX	10
 
@@ -130,6 +132,9 @@ fun_declaration		: type_specifier ID LPAREN params RPAREN compound_stmt
 						$$->lineno = popFromLineStack();
 						$$->child[0] = $4;
 						$$->child[1] = $6;
+						$$->nArgument = nFunctionParameter;	
+					
+						nFunctionParameter = 0;
 					}
 					;
 					
@@ -173,6 +178,8 @@ param				: type_specifier ID
 						
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
+						
+						nFunctionParameter++;
 					}
 					| type_specifier ID LSQUAREBRACKET RSQUAREBRACKET
 					{
@@ -183,6 +190,8 @@ param				: type_specifier ID
 						
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
+						
+						nFunctionParameter++;
 					}
 					;
 

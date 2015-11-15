@@ -125,7 +125,7 @@ static void insertNode(TreeNode * t)
 
 			if (pTemp == NULL)
 			{
-				fprintf(listing,"function didn't declared.. \n");
+				fprintf(listing,"Line = %d,   Function didn't declared.. \n",t->lineno);
 				exit(-2);
 			}
 			else
@@ -141,7 +141,7 @@ static void insertNode(TreeNode * t)
 			BucketListEntity *pTemp = st_lookup_atCharScope(gScope, t->name);
 			if (pTemp == NULL)
 			{
-				fprintf(listing, "id didn't declared.. \n");
+				fprintf(listing, "Line = %d,  Id didn't declared.. \n", t->lineno);
 				exit(-2);
 			}
 			else
@@ -172,7 +172,7 @@ static void insertNode(TreeNode * t)
 			}
 			else
 			{
-				fprintf(listing, "Var Decl Error, Already Declared.!\n");
+				fprintf(listing, "Line = %d,  Var Decl Error, Already Declared.!\n",t->lineno);
 				exit(-2);
 			}
 		}
@@ -197,7 +197,7 @@ static void insertNode(TreeNode * t)
 			}
 			else
 			{
-				fprintf(listing, "Func Decl Error, Already Declared!\n");
+				fprintf(listing, "Line = %d,   Func Decl Error, Already Declared!\n", t->lineno);
 				exit(-2);
 			}
 		}
@@ -219,7 +219,7 @@ static void insertNode(TreeNode * t)
 			}
 			else
 			{
-				fprintf(listing, "Parameter Decl Error, Already Declared..\n");
+				fprintf(listing, "Line = %d,    Parameter Decl Error, Already Declared..\n",t->lineno);
 			}
 		}
 			break;
@@ -303,6 +303,18 @@ static void checkNode(TreeNode * t)
 {
 	switch (t->nodekind)
 	{
+	case DecK:
+		if ((t->detailKind).kindInDecl == VarK)
+		{
+			if ((t->bDataType) == Void)
+			{
+				typeError(t, "Variable cannot be of type void !");
+				exit(-10);
+			}
+		}
+
+		break;
+
 	case ExpK:
 		// +, *, -, /, <=, >=, ==, !=, >, <
 		if ((t->detailKind).kindInExp == CalcK)
@@ -321,6 +333,7 @@ static void checkNode(TreeNode * t)
 		break;
 
 	case StmtK:
+		/* assignment statement */
 		/* rvalue should be Integer */
 		if ((t->detailKind).kindInStmt == AssignK)
 		{
@@ -336,9 +349,15 @@ static void checkNode(TreeNode * t)
 				t->bDataType = rightChild->bDataType;
 			}
 		}
+		/* Function Call Statement */
 		else if((t->detailKind).kindInStmt == CallK)
 		{
 			BucketListEntity *pFunctionCall = st_lookup_atCharScope("", t->name);
+
+
+
+
+			fprintf(listing, "# of argument = %d\n", t->nArgument);
 
 			int bTypeOfFunctionCall = pFunctionCall->bType;
 
@@ -349,6 +368,42 @@ static void checkNode(TreeNode * t)
 			else
 			{
 				t->bDataType = Void;
+			}
+		}
+		/* return statement */
+		else if((t->detailKind).kindInStmt == RetK)
+		{
+			char *pszFuncName = NULL;
+			BucketListEntity *pFunctionEntity = NULL;
+
+			pszFuncName = strtok(gScope, ":");
+			pFunctionEntity = st_lookup_atCharScope("", pszFuncName);
+
+			if(pFunctionEntity->bType == 1)
+			{
+				/* function returns int but return statement doesn't return */
+				if(t->bReturnWithValue == 0)
+				{
+					typeError(t, "Function should return!");
+					exit(-10);
+				}
+				else
+				{
+					if ((t->child[0])->bDataType != Integer)
+					{
+						typeError(t, "Function that returns int cannot return void type");
+						exit(-10);
+					}
+				}
+			}
+			else
+			{
+				/* function cannot return the value, but return statement has a value to return */
+				if(t->bReturnWithValue == 1)
+				{
+					typeError(t, "Function cannot return any value");
+					exit(-10);
+				}
 			}
 		}
 		break;

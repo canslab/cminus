@@ -2,28 +2,9 @@ int kbs;
 
 int gcd (int u, int v)
 {
-	int arr[3];
-
-	arr[0] = 5;
-	
-	arr[0] = u = 5555;
-	
 	{
-		{
-			int omg;
-		}
-	}	
-	if (arr[0] >= 5)
-	{	
-		output(345);
+		gcd(3,4);
 	}
-	else
-	{
-		u = input();
-	}		
-	kbs = u = 344;
-	omg = 344;
-	return 0;
 }
 
 void main(void)
@@ -31,4 +12,5 @@ void main(void)
     int x; int y;
     x = input(); y = input();
     output(gcd(x,y));
+    return;
 }
