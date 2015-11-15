@@ -186,7 +186,7 @@ static void insertNode(TreeNode * t)
 			if (pTemp == NULL)
 			{
 				gbNowFunctionDeclaration = 1;
-				if (t->child[0]->bDataType == Integer)
+				if (t->bDataType == Integer)
 				{
 					st_insert_atCharScope("",t->name, 1, gLocation,0,t->lineno);
 				}
@@ -250,22 +250,14 @@ static void insertBultinFunctions(TreeNode **_pSyntaxtree)
 	inputFunctionNode->bReturnWithValue = 1;
 	outputFunctionNode->bReturnWithValue = 0;
 
-	inputFunctionNode->child[0] = newExpNode(TypeK);
-	outputFunctionNode->child[0] = newExpNode(TypeK);
+	inputFunctionNode->bDataType = Integer;
+	outputFunctionNode->bDataType = Void;
 
-	inputFunctionNode->child[0]->name = copyString("int");
-	outputFunctionNode->child[0]->name = copyString("void");
-
-	inputFunctionNode->child[0]->bDataType = Integer;
-	outputFunctionNode->child[0]->bDataType = Void;
-
-	outputFunctionNode->child[1] = newDeclNode(ParamK);
-	outputFunctionNode->child[1]->name = copyString("arg");
-	outputFunctionNode->child[1]->lineno = 0;
-	outputFunctionNode->child[1]->child[0] = newExpNode(TypeK);
-	outputFunctionNode->child[1]->child[0]->bDataType = Integer;
-	outputFunctionNode->child[1]->child[0]->name = (char*)copyString("int");
-	outputFunctionNode->child[1]->sibling = NULL;
+	outputFunctionNode->child[0] = newDeclNode(ParamK);
+	outputFunctionNode->child[0]->name = copyString("arg");
+	outputFunctionNode->child[0]->lineno = 0;
+	outputFunctionNode->child[0]->bDataType = Integer;
+	outputFunctionNode->child[0]->sibling = NULL;
 
 	inputFunctionNode->sibling = *_pSyntaxtree;
 	*_pSyntaxtree = inputFunctionNode;
@@ -298,8 +290,6 @@ void buildSymtab(TreeNode * syntaxTree)
 
 }
 
-
-
 static void typeError(TreeNode * t, char * message)
 {
 	fprintf(listing, "Type error at line %d: %s\n", t->lineno, message);
@@ -317,64 +307,54 @@ static void checkNode(TreeNode * t)
 		// +, *, -, /, <=, >=, ==, !=, >, <
 		if ((t->detailKind).kindInExp == CalcK)
 		{
-//			if (t->child[0])
+			if ( ((t->child[0]->bDataType) == Integer) && ((t->child[1]->bDataType) == Integer))
+			{
+				t->bDataType = Integer;
+			}
+			else
+			{
+				typeError(t, "Calculation Error, There is at least one void type at calculation expression");
+				exit(-10);
+			}
 		}
 
 		break;
 
+	case StmtK:
+		/* rvalue should be Integer */
+		if ((t->detailKind).kindInStmt == AssignK)
+		{
+			TreeNode *rightChild = t->child[1];
+
+			if (rightChild->bDataType != Integer)
+			{
+				typeError(t, "Assign statement Error, rvalue should be Integer!");
+				exit(-10);
+			}
+			else
+			{
+				t->bDataType = rightChild->bDataType;
+			}
+		}
+		else if((t->detailKind).kindInStmt == CallK)
+		{
+			BucketListEntity *pFunctionCall = st_lookup_atCharScope("", t->name);
+
+			int bTypeOfFunctionCall = pFunctionCall->bType;
+
+			if (bTypeOfFunctionCall == 1)	/* if the type of return value is Integer */
+			{
+				t->bDataType = Integer;
+			}
+			else
+			{
+				t->bDataType = Void;
+			}
+		}
+		break;
 	default:
 		break;
 	}
-
-
-//	switch (t->nodekind)
-//	{
-//	case ExpK:
-//		switch (t->kind.exp)
-//		{
-//		case OpK:
-//			if ((t->child[0]->type != Integer) || (t->child[1]->type != Integer))
-//				typeError(t, "Op applied to non-integer");
-//			if ((t->attr.op == EQ) || (t->attr.op == LT))
-//				t->type = Boolean;
-//			else
-//				t->type = Integer;
-//			break;
-//		case ConstK:
-//		case IdK:
-//			t->type = Integer;
-//			break;
-//		default:
-//			break;
-//		}
-//		break;
-//	case StmtK:
-//		switch (t->kind.stmt)
-//		{
-//		case IfK:
-//			if (t->child[0]->type == Integer)
-//				typeError(t->child[0], "if test is not Boolean");
-//			break;
-//		case AssignK:
-//			if (t->child[0]->type != Integer)
-//				typeError(t->child[0], "assignment of non-integer value");
-//			break;
-//		case WriteK:
-//			if (t->child[0]->type != Integer)
-//				typeError(t->child[0], "write of non-integer value");
-//			break;
-//		case RepeatK:
-//			if (t->child[1]->type == Integer)
-//				typeError(t->child[1], "repeat test is not Boolean");
-//			break;
-//		default:
-//			break;
-//		}
-//		break;
-//	default:
-//		break;
-
-//	}
 }
 
 /* Procedure typeCheck performs type checking 

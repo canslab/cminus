@@ -1,5 +1,3 @@
-int kbs;
-
 int gcd (int u, int v)
 {
 	int arr[3];
@@ -8,11 +6,6 @@ int gcd (int u, int v)
 	
 	arr[0] = u = 5555;
 	
-	{
-		{
-			int omg;
-		}
-	}	
 	if (arr[0] >= 5)
 	{	
 		output(345);
@@ -21,8 +14,7 @@ int gcd (int u, int v)
 	{
 		u = input();
 	}		
-	kbs = u = 344;
-	omg = 344;
+
 	return 0;
 }
 

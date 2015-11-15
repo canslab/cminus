@@ -88,27 +88,29 @@ declaration			: var_declaration	{ $$ = $1; }
 var_declaration		: type_specifier ID SEMICOLON
 					{
 						$$ = newDeclNode(VarK);
-						$$->child[0] = $1;	/* type specifier is the first child */
+						$$->bDataType = $1->bDataType;
 						$$->bWithIndex = 0;
-						
+						free($1);
+												
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
-				
 					}
 					| type_specifier ID 
 					  LSQUAREBRACKET NUM RSQUAREBRACKET SEMICOLON
 					{
 						$$ = newDeclNode(VarK);
-						$$->child[0] = $1;						/* type specifier is the first child */
-						$$->name = popFromNameStack();			/* assign string of ID to Node */
-						$$->lineno = popFromLineStack();		/* assign line number to Node */
+						$$->bDataType = $1->bDataType;
 						$$->bWithIndex = 1;
+						free($1);
 						
+						$$->name = popFromNameStack();			/* assign string of ID to Node */
+						$$->lineno = popFromLineStack();		/* assign line number to Node */						
 						
 						TreeNode *numberNode = newExpNode(ConstK);	/* subscript index is included in the new number node */
+						numberNode->bDataType = Integer;
 						numberNode->value = popFromNumberStack();	/* subscript index is the contents of the number node*/
 						
-						$$->child[1] = numberNode;		/* subscript index is the second child*/
+						$$->child[0] = numberNode;		/* subscript index is the first child*/
 					}
 					;
 			
@@ -121,11 +123,13 @@ type_specifier  	: INT   { $$ = newExpNode(TypeK); $$->name = copyString("int");
 fun_declaration		: type_specifier ID LPAREN params RPAREN compound_stmt
 					{
 						$$ = newDeclNode(FunK);
-						$$->child[0] = $1;
+						$$->bDataType = $1->bDataType;
+						free($1);
+						
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
-						$$->child[1] = $4;
-						$$->child[2] = $6;
+						$$->child[0] = $4;
+						$$->child[1] = $6;
 					}
 					;
 					
@@ -163,17 +167,22 @@ param_list			: param_list COMMA param
 param				: type_specifier ID
 					{
 						$$ = newDeclNode(ParamK);
-						$$->child[0] = $1;
+						$$->bDataType = $1->bDataType;
+						$$->bWithIndex = 0;
+						free($1);
+						
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
 					}
 					| type_specifier ID LSQUAREBRACKET RSQUAREBRACKET
 					{
 						$$ = newDeclNode(ParamK);
-						$$->child[0] = $1;
+						$$->bDataType = $1->bDataType;
+						$$->bWithIndex = 1;
+						free($1);
+						
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
-						$$->bWithIndex = 1;
 					}
 					;
 
@@ -206,7 +215,7 @@ local_declarations	: local_declarations var_declaration
 							$$ = $2;
 						}
 					}
-					|	{ 	$$ = NULL;	printf(" New scope!.. \n");	}	/* when empty */
+					|	{ 	$$ = NULL;	/* printf(" New scope!.. \n");*/	}	/* when empty */
 					;
 
 /* 12 */
