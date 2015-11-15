@@ -11,11 +11,51 @@
 #include "globals.h"
 
 /* counter for variable memory locations */
-static int location = 0;
-
 static int gLocation = 0;
-static int gScope = 0;
-static int gAccScope = 0;
+static char *gScope = "";
+
+static int gbNowFunctionDeclaration = 0;
+
+char * getNewScope(TreeNode * t)
+{
+	char *result = NULL;
+
+	if (t->nodekind == DecK)
+	{
+		if ((t->detailKind.kindInDecl) == FunK)
+		{
+			result = (char *)malloc(sizeof(char)* (strlen(gScope) + strlen(t->name) + 3));
+			sprintf(result, "%s:%s", gScope, t->name);
+		}
+	}
+	else if (t->nodekind == StmtK)
+	{
+		if ((t->detailKind).kindInStmt == CmpK)
+		{
+			 /* when you declare function, the scope of first tcompound statment is as same as function declartion's scope*/
+			if (gbNowFunctionDeclaration == 0)
+			{
+				result = (char *)malloc(sizeof(char) * (strlen(gScope) + 12));
+				sprintf(result, "%s:%d\0", gScope, t->lineno);
+			}
+			else
+			{
+				result = NULL;
+				// set gbNowFunctionDeclaration to 0
+				gbNowFunctionDeclaration = 0;
+			}
+		}
+	}
+
+	if (result == NULL)
+	{
+		result = (char *) malloc(sizeof(char) * (strlen(gScope) + 2));
+		strcpy(result, gScope);
+	}
+
+	return result;
+}
+
 
 /* Procedure traverse is a generic recursive 
  * syntax tree traversal routine:
@@ -27,17 +67,24 @@ static void traverse(TreeNode * t, void (*preProc)(TreeNode *), void (*postProc)
 	if (t != NULL)
 	{
 		int locationBackup = gLocation;
-		int scopeBackUp = gScope;
 
 		preProc(t);
 		// gScope = 1, gLocation = 1
 		{
 			int i;
+			// backup the scope before getting new scope
+			char *scopeBackUp = gScope;
+
+			// get new scope and save it to gScope
+			gScope = getNewScope(t);
+
 			for (i = 0; i < MAXCHILDREN; i++)
 				traverse(t->child[i], preProc, postProc);
 
+			free(gScope);
 			gLocation = locationBackup;
 			gScope = scopeBackUp;
+
 		}
 
 		postProc(t);
@@ -63,99 +110,113 @@ static void nullProc(TreeNode * t)
  */
 static void insertNode(TreeNode * t)
 {
+
 	switch (t->nodekind)
 	{
-	case ExpK:
-		if((t->detailKind).kindInExp == IdK)
+	case StmtK:
+		if ((t->detailKind).kindInStmt ==  CallK)
 		{
-			if (st_lookup(t->name, gScope) == -1)
+			BucketListEntity *pTemp = st_lookup_at_now_scope("", t->name);
+
+			if (pTemp == NULL)
 			{
-				fprintf(listing, " Id should be declared before use! \n");
-				exit(-1);
+				fprintf(listing,"function didn't declared.. \n");
+				exit(-2);
 			}
 			else
 			{
-				st_insert(t->name, gScope, gLocation, 1, 0, t->lineno);
+				addLine("", t->name, t->lineno);
 			}
 		}
 		break;
 
-	case StmtK:
-		switch((t->detailKind).kindInStmt)
+	case ExpK:
+		if ((t->detailKind).kindInExp == IdK)
 		{
-		case CmpK:
-			gLocation++;
-			break;
-
-		case CallK:
-			// call means function call
-			// function should be already in the symbol table
-			if (st_lookup(t->name, 0) == -1)
+			BucketListEntity *pTemp = st_lookup_atCharScope(gScope, t->name);
+			if (pTemp == NULL)
 			{
-				fprintf(listing, "Function should be declared before use!\n");
-				exit(-3);
+				fprintf(listing, "id didn't declared.. \n");
+				exit(-2);
 			}
-			break;
+			else
+			{
+				addLine(gScope, t->name, t->lineno);
+			}
 		}
 		break;
 
 	case DecK:
 		switch((t->detailKind).kindInDecl)
 		{
+		/**/
 		case VarK:
-			fprintf(listing, "gScope = %d\n", gScope);
-			int tempLoc;
-			if((tempLoc = st_lookup(t->name,gScope)) != -1)
+		{
+			BucketListEntity *pTemp = st_lookup_at_now_scope(gScope, t->name);
+
+			if (pTemp == NULL)	/* there is no t->name at Symbol Table of gScope*/
 			{
-				if(gLocation != tempLoc)
+				if (t->bWithIndex == 1)
 				{
-					st_insert(t->name, gScope, gLocation, 1, 0, t->lineno);
+					st_insert_atCharScope(gScope, t->name, 1, gLocation, 1, t->lineno);
 				}
 				else
 				{
-					fprintf(listing, "Var Declaration Error...\n");
-					exit(-2);
+					st_insert_atCharScope(gScope, t->name, 1, gLocation, 0, t->lineno);
 				}
 			}
 			else
 			{
-				st_insert(t->name, gScope, gLocation, 1, 0, t->lineno);
+				fprintf(listing, "Var Decl Error, Already Declared.!\n");
+				exit(-2);
 			}
+		}
 			break;
 		case FunK:
-			if (st_lookup(t->name, 0) == -1)	// cannot find
+		{
+			// Find the symbol at global scope()
+			BucketListEntity *pTemp = st_lookup_at_now_scope("", t->name);
+
+			// If function declaration is not in the symbol table.
+			if (pTemp == NULL)
 			{
-				if((t->child[0])->tokType == INT )
+				gbNowFunctionDeclaration = 1;
+				if (t->child[0]->tokType == INT)
 				{
-					st_insert(t->name, 0, 0, 1, 1, t->lineno );
+					st_insert_atCharScope("",t->name, 1, gLocation,0,t->lineno);
 				}
 				else
 				{
-					st_insert(t->name, 0, 0, 0, 1, t->lineno);
-				}
-				gAccScope++;
-				gScope = gAccScope;
-				fprintf(listing, " Acc Scope = %d\n", gAccScope);
-			}
-			else	// find
-			{
-				fprintf(listing, "Function Declaration Error...\n");
-				exit(-2);
-			}
-			break;
-		case ParamK:
-			if (st_lookup(t->name, gScope) == -1)	// cannot find
-			{
-				if( (t->child[0])->tokType == INT)
-				{
-					st_insert(t->name, gScope, 1, 1, 0, t->lineno);
+					st_insert_atCharScope("", t->name, 0, gLocation, 0, t->lineno);
 				}
 			}
 			else
 			{
-				fprintf(listing, "Parameter Decl Error..\n");
+				fprintf(listing, "Func Decl Error, Already Declared!\n");
 				exit(-2);
 			}
+		}
+			break;
+		case ParamK:	// Parameter Declaration.
+		{
+			BucketListEntity *pTemp = st_lookup_at_now_scope(gScope, t->name);
+
+			if (pTemp == NULL)
+			{
+				if (t->bWithIndex == 1)
+				{
+					st_insert_atCharScope(gScope, t->name, 1, gLocation, 1, t->lineno);
+				}
+				else
+				{
+					st_insert_atCharScope(gScope, t->name, 1, gLocation, 0, t->lineno);
+				}
+			}
+			else
+			{
+				fprintf(listing, "Parameter Decl Error, Already Declared..\n");
+			}
+		}
 			break;
 		default:
 			break;
@@ -169,16 +230,21 @@ static void insertNode(TreeNode * t)
  */
 void buildSymtab(TreeNode * syntaxTree)
 {
-	// input & output already in symbol table.
-	st_insert("input", 0, 0, 1, 1, 0);
-	st_insert("output", 0, 0, 0, 1, 0);
-
+	// input & output already in symbol table
+	st_insert_atCharScope("", "input", 1, 0, 0, 0);
+	st_insert_atCharScope("", "output", 0, 0, 0, 0);
 	traverse(syntaxTree, insertNode, nullProc);
 
 	if (TraceAnalyze)
 	{
 		fprintf(listing, "\nSymbol table:\n\n");
-		printSymTab(listing);
+		printSymbolTable(listing);
+	}
+
+	if (st_lookup_atCharScope("", "main") == NULL)
+	{
+		fprintf(listing, "\nThere should be main function !\n");
+		exit(-4);
 	}
 }
 

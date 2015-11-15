@@ -24,3 +24,5 @@ cminus_flex
 lex.yy.c
 
 cminus_parse
+
+test4.cm

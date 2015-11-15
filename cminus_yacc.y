@@ -171,9 +171,9 @@ param				: type_specifier ID
 					{
 						$$ = newDeclNode(ParamK);
 						$$->child[0] = $1;
-						
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
+						$$->bWithIndex = 1;
 					}
 					;
 
@@ -183,6 +183,7 @@ compound_stmt		: LCURLYBRACKET local_declarations statement_list RCURLYBRACKET
 						$$ = newStmtNode(CmpK);
 						$$->child[0] = $2;
 						$$->child[1] = $3;
+						$$->lineno = popFromLineStack();
 					}
 					;
 
@@ -532,6 +533,10 @@ static int yylex(void)
 	else if ( token == NUM )
 	{
 		pushToNumberStack (atoi(tokenString));
+	}
+	else if (token == LCURLYBRACKET)
+	{
+		pushToLineStack(lineno);
 	}
 	return token;
 }

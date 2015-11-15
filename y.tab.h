@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_Y_TAB_H_INCLUDED
-# define YY_YY_Y_TAB_H_INCLUDED
+#ifndef YY_YY_CMINUS_YACC_TAB_H_INCLUDED
+# define YY_YY_CMINUS_YACC_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -75,35 +75,6 @@ extern int yydebug;
     ERROR = 285
   };
 #endif
-/* Tokens.  */
-#define IF 258
-#define RETURN 259
-#define ELSE 260
-#define WHILE 261
-#define VOID 262
-#define INT 263
-#define ID 264
-#define NUM 265
-#define EQUAL 266
-#define NOTEQ 267
-#define ASSIGN 268
-#define LT 269
-#define LTEQ 270
-#define GT 271
-#define GTEQ 272
-#define PLUS 273
-#define MINUS 274
-#define TIMES 275
-#define DIVISION 276
-#define LPAREN 277
-#define RPAREN 278
-#define LCURLYBRACKET 279
-#define RCURLYBRACKET 280
-#define LSQUAREBRACKET 281
-#define RSQUAREBRACKET 282
-#define SEMICOLON 283
-#define COMMA 284
-#define ERROR 285
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -117,4 +88,4 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-#endif /* !YY_YY_Y_TAB_H_INCLUDED  */
+#endif /* !YY_YY_CMINUS_YACC_TAB_H_INCLUDED  */
