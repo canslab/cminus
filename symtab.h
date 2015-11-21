@@ -38,8 +38,8 @@ typedef struct ScopeListEntity
 ScopeListEntity* getParentScopeListEntity(char *_pszScope);
 
 // insert functions
-void st_insert_atScope(ScopeListEntity *_pScope, char *_pszName, int _bType, int _nLocation ,int _bArray,int _nLineno);
-void st_insert_atCharScope(char *_pszScope, char *_pszName, int _bType, int _nLocation, int _bArray, int _nLineno);
+void st_insert_atScope(ScopeListEntity *_pScope, char *_pszName, int _bType, int _nLocation ,int _bArray, int _nArguments ,int _nLineno);
+void st_insert_atCharScope(char *_pszScope, char *_pszName, int _bType, int _nLocation, int _bArray, int _nArguments , int _nLineno);
 
 // it is only at _pScope that we find _pszName 
 BucketListEntity *st_lookup_atScope(ScopeListEntity *_pScope, char *_pszName);

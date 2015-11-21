@@ -44,6 +44,12 @@ clean:
 	# -rm tm
 	-rm $(OBJSPARSE)
 
+yacc: cminus_yacc.y
+	bison -d cminus_yacc.y
+	rm -rf parse.c y.tab.h
+	mv cminus_yacc.tab.c parse.c
+	mv cminus_yacc.tab.h y.tab.h
+	
 #tm: tm.c
 #	$(CC) $(CFLAGS) tm.c -o tm
 

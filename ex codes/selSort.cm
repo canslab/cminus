@@ -1,0 +1,73 @@
+/* A program to perform selection sort on a 10 element array */
+int x[10];
+int minloc(int a[], int low, int high)
+{
+	int i;	int x;	int k; 
+        int y;
+	k = low;
+	x = a[low];
+        x = a;  /* 9 type inconsistance Array pointer to Integer Id */
+        a = x;  /* 10 type inconsistance Integer to Array pointer Id */
+        a[low] = x;
+	i = low + 1;
+	while(a)    /*13 test expresstion type error a is not integer value */
+	{
+		if(a[i] < x)
+		{
+			x = a[i];
+			k = i;
+		}
+		i = i + 1;
+	}
+	return ;
+}
+
+void sort(int a[], int low, int high)
+{ 
+        void v;   /*27 variable type cannot be void */
+        int i;	int k;
+        v = fun(i,k);  /* 29 Error undefine function fun */
+        a = 1;        /* 30 type inconsistance integer to Array pointer Id */       
+        y = 3;        /* 31 Error undefine local variable */
+        
+         
+         
+	i = low;
+	while(i < high - 1)
+	{
+		int t;
+		k = minloc(a, i, high, k);  /* 39 invalid function call */
+		t = a[k];
+		a[k] = a[i];
+		a[i] = t;
+		i = i + 1;
+	}
+         
+        t=3;    /* 46 Error undefine variable in current nested level */
+
+        return 0;
+}
+
+void main(void)
+{
+	int i;
+	i = 0;
+        i = sort(x, 0, 10);   /*55 assignment function return type inconsistance */
+        if(sort(x,0,10)){     /*56 if test expression is not integer value */
+          i = 1;
+        }      
+        
+	while(i < 10)
+	{
+		x[i] = input();
+		i = i + 1;
+	}	
+	sort(x, 0, 10);
+	i = 0;
+	while(i < 10)
+	{
+		output(x[i]);
+		i = i + 1;
+	}
+        
+}

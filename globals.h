@@ -115,8 +115,7 @@ typedef struct treeNode
 	struct treeNode * sibling;
 	int lineno;
 
-	NodeKind nodekind;
-
+	NodeKind nodekind;				// comprehensive kind of node
 	union
 	{
 		DeclKind kindInDecl;
@@ -133,9 +132,10 @@ typedef struct treeNode
 	int bIfWithElse;				// it distinguishes "if" from "if-else"
 	int bReturnWithValue;
 	int bWithIndex;					// it distinguishes "normal var" from "array"
-	int nArgument;					// # of argument in function declaration.
+	int nArguments;					// # of argument in function declaration. or function Call
+									// it is used to check whether # of arguments in function declaration = # of args of call statment.
 
-	ExpType bDataType;				 /* for type checking of exps */
+	ExpType bDataType;				// it is either Integer or Void. It used to compare the type of the other node's type.
 } TreeNode;
 
 /**************************************************/

@@ -16,6 +16,26 @@ static char *gScope = "";
 
 static int gbNowFunctionDeclaration = 0;
 
+// it is used to count # of arguments in function declaration or call statement.
+static int getNumberOfArguments(TreeNode *t)
+{
+	int count = 0;
+
+	if (t != NULL)
+	{
+		while (t->sibling != NULL)
+		{
+			t = t->sibling;
+			count++;
+		}
+
+		count++;
+	}
+
+	return count;
+}
+
+
 char * getNewScope(TreeNode * t)
 {
 	char *result = NULL;
@@ -60,7 +80,6 @@ char * getNewScope(TreeNode * t)
 
 	return result;
 }
-
 
 /* Procedure traverse is a generic recursive 
  * syntax tree traversal routine:
@@ -163,11 +182,11 @@ static void insertNode(TreeNode * t)
 			{
 				if (t->bWithIndex == 1)
 				{
-					st_insert_atCharScope(gScope, t->name, 1, gLocation, 1, t->lineno);
+					st_insert_atCharScope(gScope, t->name, 1, gLocation, 1, -1, t->lineno);
 				}
 				else
 				{
-					st_insert_atCharScope(gScope, t->name, 1, gLocation, 0, t->lineno);
+					st_insert_atCharScope(gScope, t->name, 1, gLocation, 0, -1 , t->lineno);
 				}
 			}
 			else
@@ -186,13 +205,16 @@ static void insertNode(TreeNode * t)
 			if (pTemp == NULL)
 			{
 				gbNowFunctionDeclaration = 1;
+
+				int paramCount = getNumberOfArguments(t->child[0]);
+
 				if (t->bDataType == Integer)
 				{
-					st_insert_atCharScope("",t->name, 1, gLocation,0,t->lineno);
+					st_insert_atCharScope("",t->name, 1, gLocation,0, paramCount,t->lineno);
 				}
 				else
 				{
-					st_insert_atCharScope("", t->name, 0, gLocation, 0, t->lineno);
+					st_insert_atCharScope("", t->name, 0, gLocation, 0, paramCount,t->lineno);
 				}
 			}
 			else
@@ -210,11 +232,11 @@ static void insertNode(TreeNode * t)
 			{
 				if (t->bWithIndex == 1)
 				{
-					st_insert_atCharScope(gScope, t->name, 1, gLocation, 1, t->lineno);
+					st_insert_atCharScope(gScope, t->name, 1, gLocation, 1, -1,t->lineno);
 				}
 				else
 				{
-					st_insert_atCharScope(gScope, t->name, 1, gLocation, 0, t->lineno);
+					st_insert_atCharScope(gScope, t->name, 1, gLocation, 0, -1,t->lineno);
 				}
 			}
 			else
@@ -243,6 +265,9 @@ static void insertBultinFunctions(TreeNode **_pSyntaxtree)
 
 	inputFunctionNode->lineno = 0;
 	outputFunctionNode->lineno = 0;
+
+	inputFunctionNode->nArguments = 0;
+	outputFunctionNode->nArguments = 1;
 
 	inputFunctionNode->detailKind.kindInDecl = FunK;
 	outputFunctionNode->detailKind.kindInDecl = FunK;
@@ -303,6 +328,7 @@ static void checkNode(TreeNode * t)
 {
 	switch (t->nodekind)
 	{
+
 	case DecK:
 		if ((t->detailKind).kindInDecl == VarK)
 		{
@@ -312,7 +338,6 @@ static void checkNode(TreeNode * t)
 				exit(-10);
 			}
 		}
-
 		break;
 
 	case ExpK:
@@ -350,16 +375,22 @@ static void checkNode(TreeNode * t)
 			}
 		}
 		/* Function Call Statement */
+		/* determine Node of Callk's type */
 		else if((t->detailKind).kindInStmt == CallK)
 		{
 			BucketListEntity *pFunctionCall = st_lookup_atCharScope("", t->name);
 
-
-
-
-			fprintf(listing, "# of argument = %d\n", t->nArgument);
-
+			int count = 0;
 			int bTypeOfFunctionCall = pFunctionCall->bType;
+
+
+			count = getNumberOfArguments(t->child[0]);
+
+			if (pFunctionCall->nArguments != count)
+			{
+				typeError(t, "# of Arguments in Call Statment is not consistent with # of Arguments in Function Declaration");
+				exit(-10);
+			}
 
 			if (bTypeOfFunctionCall == 1)	/* if the type of return value is Integer */
 			{
@@ -406,6 +437,16 @@ static void checkNode(TreeNode * t)
 				}
 			}
 		}
+		/* when encounters if statement, conditional expression should be of type Integer */
+		else if((t->detailKind).kindInStmt == SelK)
+		{
+			if ((t->child[0]->bDataType) != Integer)
+			{
+				typeError(t, "expression in If statement should be of type Integer!");
+				exit(-10);
+			}
+		}
+
 		break;
 	default:
 		break;

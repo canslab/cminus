@@ -26,3 +26,5 @@ lex.yy.c
 cminus_parse
 
 test4.cm
+
+*.cm~

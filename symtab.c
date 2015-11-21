@@ -66,7 +66,7 @@ ScopeListEntity* getParentScopeListEntity(char *_pszScope)
 	return pScopeListEntity;
 }
 
-void st_insert_atScope(ScopeListEntity *_pScope, char *_pszName, int _bType, int _nLocation, int _bArray, int _nLineno)
+void st_insert_atScope(ScopeListEntity *_pScope, char *_pszName, int _bType, int _nLocation, int _bArray, int _nArguments, int _nLineno)
 {
 	int nIndex = hash(_pszName);
 	BucketListEntity *pBucketEntity = (_pScope->pBucketListEntities)[nIndex];
@@ -101,6 +101,9 @@ void st_insert_atScope(ScopeListEntity *_pScope, char *_pszName, int _bType, int
 		// assign bArray
 		pNewBucketEntity->bArray = _bArray;
 
+		// assign # of Arguments if function
+		pNewBucketEntity->nArguments = _nArguments;
+
 		// assign 
 		pNewBucketEntity->pNext = (_pScope->pBucketListEntities)[nIndex];
 		(_pScope->pBucketListEntities)[nIndex] = pNewBucketEntity;
@@ -117,7 +120,7 @@ void st_insert_atScope(ScopeListEntity *_pScope, char *_pszName, int _bType, int
 		pTemp->pNext->pNext = NULL;
 	}
 }
-void st_insert_atCharScope(char *_pszScope, char *_pszName, int _bType, int _nLocation, int _bArray, int _nLineno)
+void st_insert_atCharScope(char *_pszScope, char *_pszName, int _bType, int _nLocation, int _bArray, int _nArguments ,int _nLineno)
 {
 	int nIndex = hash(_pszScope);
 	ScopeListEntity *pScopeListEntity = scopeHashTable[nIndex];
@@ -142,7 +145,7 @@ void st_insert_atCharScope(char *_pszScope, char *_pszName, int _bType, int _nLo
 		scopeHashTable[nIndex] = pScopeListEntity;
 	}
 
-	st_insert_atScope(pScopeListEntity, _pszName, _bType, _nLocation, _bArray, _nLineno);
+	st_insert_atScope(pScopeListEntity, _pszName, _bType, _nLocation, _bArray, _nArguments,_nLineno);
 }
 
 // it is only at _pScope that we find _pszName 

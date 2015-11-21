@@ -19,8 +19,6 @@ static int savedLineNo;  /* ditto */
 static TreeNode * savedTree; /* stores syntax tree for later return */
 static int yylex(void); // added 11/2/11 to ensure no conflict with lex
 
-int nFunctionParameter = 0;
-
 /* Codes that are below are related to the stack library */
 #define STACK_MAX	10
 
@@ -132,9 +130,7 @@ fun_declaration		: type_specifier ID LPAREN params RPAREN compound_stmt
 						$$->lineno = popFromLineStack();
 						$$->child[0] = $4;
 						$$->child[1] = $6;
-						$$->nArgument = nFunctionParameter;	
 					
-						nFunctionParameter = 0;
 					}
 					;
 					
@@ -179,7 +175,6 @@ param				: type_specifier ID
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
 						
-						nFunctionParameter++;
 					}
 					| type_specifier ID LSQUAREBRACKET RSQUAREBRACKET
 					{
@@ -191,7 +186,6 @@ param				: type_specifier ID
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
 						
-						nFunctionParameter++;
 					}
 					;
 
@@ -458,11 +452,12 @@ factor				: LPAREN expression RPAREN
 
 /* 27 */
 call				: ID LPAREN args RPAREN
-					{
+					{							
 						$$ = newStmtNode(CallK);
 						$$->name = popFromNameStack();
 						$$->lineno = popFromLineStack();
-						$$->child[0] = $3;
+						$$->child[0] = $3;	
+
 					}
 					;
 
@@ -477,13 +472,13 @@ args				: arg_list
 /* 29 */
 arg_list			: arg_list COMMA expression
 					{
-						
 						TreeNode *t = $1;
 						
 						if ( t != NULL )
 						{
 							while( t->sibling != NULL)
-							{
+							{				
+						
 								t = t->sibling;
 							}
 							t->sibling = $3;
