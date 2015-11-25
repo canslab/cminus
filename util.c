@@ -6,52 +6,79 @@
 /* Kenneth C. Louden                                */
 /****************************************************/
 
-#include "globals.h"
 #include "util.h"
+#include "globals.h"
 
 /* Procedure printToken prints a token 
  * and its lexeme to the listing file
  */
-void printToken(TokenType token, const char* tokenString) {
-	switch (token) {
-	case IF:
-	case THEN:
+void printToken(TokenType token, const char* tokenString)
+{
+	switch (token)
+	{
 	case ELSE:
-	case END:
-	case REPEAT:
-	case UNTIL:
-	case READ:
-	case WRITE:
+	case IF:
+	case INT:
+	case RETURN:
+	case VOID:
+	case WHILE:
 		fprintf(listing, "reserved word: %s\n", tokenString);
 		break;
-	case ASSIGN:
-		fprintf(listing, ":=\n");
-		break;
-	case LT:
-		fprintf(listing, "<\n");
-		break;
-	case EQ:
+	case ASSIGN:						/* = */
 		fprintf(listing, "=\n");
 		break;
-	case LPAREN:
+	case LT:
+		fprintf(listing, "<\n");		/* < */
+		break;
+	case LTEQ:
+		fprintf(listing, "<=\n");		/* <= */
+		break;
+	case GT:
+		fprintf(listing, ">\n");		/* > */
+		break;
+	case GTEQ:							/* >= */
+		fprintf(listing, ">=\n");
+		break;
+	case EQUAL:							/* == */
+		fprintf(listing, "==\n");
+		break;
+	case NOTEQ:							/* != */
+		fprintf(listing, "!=\n");
+		break;
+	case LPAREN:						/* ( */
 		fprintf(listing, "(\n");
 		break;
-	case RPAREN:
+	case RPAREN:						/* ) */
 		fprintf(listing, ")\n");
 		break;
-	case SEMI:
+	case LSQUAREBRACKET:				/* [ */
+		fprintf(listing, "[\n");
+		break;
+	case RSQUAREBRACKET:				/* ] */
+		fprintf(listing, "]\n");
+		break;
+	case LCURLYBRACKET:					/* { */
+		fprintf(listing, "{\n");
+		break;
+	case RCURLYBRACKET:					/* } */
+		fprintf(listing, "}\n");
+		break;
+	case COMMA:							/* , */
+		fprintf(listing, ",\n");
+		break;
+	case SEMICOLON:						/* ; */
 		fprintf(listing, ";\n");
 		break;
-	case PLUS:
+	case PLUS:							/* + */
 		fprintf(listing, "+\n");
 		break;
-	case MINUS:
+	case MINUS:							/* - */
 		fprintf(listing, "-\n");
 		break;
-	case TIMES:
+	case TIMES:							/* * */
 		fprintf(listing, "*\n");
 		break;
-	case OVER:
+	case DIVISION:						/* / */
 		fprintf(listing, "/\n");
 		break;
 	case ENDFILE:
@@ -74,18 +101,22 @@ void printToken(TokenType token, const char* tokenString) {
 /* Function newStmtNode creates a new statement
  * node for syntax tree construction
  */
-TreeNode * newStmtNode(StmtKind kind) {
+TreeNode * newStmtNode(StmtKind kind)
+{
 	TreeNode * t = (TreeNode *) malloc(sizeof(TreeNode));
 	int i;
 	if (t == NULL)
 		fprintf(listing, "Out of memory error at line %d\n", lineno);
-	else {
+	else
+	{
 		for (i = 0; i < MAXCHILDREN; i++)
 			t->child[i] = NULL;
 		t->sibling = NULL;
-		t->nodekind = StmtK;
-		t->kind.stmt = kind;
+		t->nodekind =  StmtK;
+		t->detailKind.kindInStmt = kind;
 		t->lineno = lineno;
+		t->bIfWithElse = -1;
+		t->bReturnWithValue = -1;
 	}
 	return t;
 }
@@ -93,27 +124,68 @@ TreeNode * newStmtNode(StmtKind kind) {
 /* Function newExpNode creates a new expression 
  * node for syntax tree construction
  */
-TreeNode * newExpNode(ExpKind kind) {
+TreeNode * newDeclNode(DeclKind kind)
+{
 	TreeNode * t = (TreeNode *) malloc(sizeof(TreeNode));
 	int i;
 	if (t == NULL)
 		fprintf(listing, "Out of memory error at line %d\n", lineno);
-	else {
+	else
+	{
 		for (i = 0; i < MAXCHILDREN; i++)
 			t->child[i] = NULL;
 		t->sibling = NULL;
-		t->nodekind = ExpK;
-		t->kind.exp = kind;
+		t->nodekind = DecK;
+		t->detailKind.kindInDecl = kind;
 		t->lineno = lineno;
-		t->type = Void;
+		t->nArguments = 0;
 	}
 	return t;
 }
 
+TreeNode * newExpNode(ExpKind kind)
+{
+	TreeNode * t = (TreeNode *) malloc(sizeof(TreeNode));
+		int i;
+		if (t == NULL)
+			fprintf(listing, "Out of memory error at line %d\n", lineno);
+		else
+		{
+			for (i = 0; i < MAXCHILDREN; i++)
+				t->child[i] = NULL;
+			t->sibling = NULL;
+			t->nodekind = ExpK;
+			t->detailKind.kindInExp = kind;
+			t->lineno = lineno;
+			t->bWithIndex = -1;
+		}
+		return t;
+
+}
+
+TreeNode * newOpNode(OpKind kind)
+{
+	TreeNode * t = (TreeNode *) malloc(sizeof(TreeNode));
+		int i;
+		if (t == NULL)
+			fprintf(listing, "Out of memory error at line %d\n", lineno);
+		else
+		{
+			for (i = 0; i < MAXCHILDREN; i++)
+				t->child[i] = NULL;
+			t->sibling = NULL;
+			t->nodekind = OpK;
+			t->detailKind.kindInOp = kind;
+			t->lineno = lineno;
+		}
+		return t;
+
+}
 /* Function copyString allocates and makes a new
  * copy of an existing string
  */
-char * copyString(char * s) {
+char * copyString(char * s)
+{
 	int n;
 	char * t;
 	if (s == NULL)
@@ -137,7 +209,8 @@ static indentno = 0;
 #define UNINDENT indentno-=2
 
 /* printSpaces indents by printing spaces */
-static void printSpaces(void) {
+static void printSpaces(void)
+{
 	int i;
 	for (i = 0; i < indentno; i++)
 		fprintf(listing, " ");
@@ -146,49 +219,102 @@ static void printSpaces(void) {
 /* procedure printTree prints a syntax tree to the 
  * listing file using indentation to indicate subtrees
  */
-void printTree(TreeNode * tree) {
+void printTree(TreeNode * tree)
+{
 	int i;
 	INDENT;
-	while (tree != NULL) {
+	while (tree != NULL)
+	{
 		printSpaces();
-		if (tree->nodekind == StmtK) {
-			switch (tree->kind.stmt) {
-			case IfK:
-				fprintf(listing, "If\n");
+
+		if (tree->nodekind == StmtK)
+		{
+			switch (tree->detailKind.kindInStmt)
+			{
+			case SelK:
+				if (tree->bIfWithElse == 1)
+					fprintf(listing, "If with Else \n");
+				else
+					fprintf(listing, "If \n");
 				break;
-			case RepeatK:
-				fprintf(listing, "Repeat\n");
+			case CmpK:
+				fprintf(listing, "Compound statement \n");
 				break;
 			case AssignK:
-				fprintf(listing, "Assign to: %s\n", tree->attr.name);
+				fprintf(listing, "Assignment: \n");
 				break;
-			case ReadK:
-				fprintf(listing, "Read: %s\n", tree->attr.name);
+			case ItK:
+				fprintf(listing, "While statement \n");
 				break;
-			case WriteK:
-				fprintf(listing, "Write\n");
+			case RetK:
+				if (tree->bReturnWithValue == 1)
+					fprintf(listing, "Return Statement with value \n");
+				else
+					fprintf(listing,"Return Statement with no value \n");
+				break;
+			case CallK:
+				fprintf(listing, "Call statement => %s\n", tree->name);
 				break;
 			default:
 				fprintf(listing, "Unknown ExpNode kind\n");
 				break;
 			}
-		} else if (tree->nodekind == ExpK) {
-			switch (tree->kind.exp) {
-			case OpK:
-				fprintf(listing, "Op: ");
-				printToken(tree->attr.op, "\0");
+		}
+		else if (tree->nodekind == DecK)
+		{
+			switch (tree->detailKind.kindInDecl)
+			{
+			case VarK:
+				fprintf(listing, "Var declaration => %s\n", tree->name);
 				break;
+			case FunK:
+				fprintf(listing, "Func declaration => %s\n", tree->name);
+				break;
+			case ParamK:
+				fprintf(listing, "Param Declaration => %s\n", tree->name);
+				break;
+			default:
+				fprintf(listing, "Unknown Declaration kind\n");
+				break;
+			}
+		}
+		else if (tree->nodekind == ExpK)
+		{
+			switch (tree->detailKind.kindInExp)
+			{
 			case ConstK:
-				fprintf(listing, "Const: %d\n", tree->attr.val);
+				fprintf(listing, "Constant Expression => %d \n", tree->value);
 				break;
 			case IdK:
-				fprintf(listing, "Id: %s\n", tree->attr.name);
+				fprintf(listing, "Id Expression => %s \n", tree->name );
+				break;
+			case CalcK:
+				fprintf(listing, "Calculation Expression => %s \n", tree->name );
+				break;
+			case TypeK:
+				fprintf(listing, "Type-specific Expression => %s \n", tree->name);
 				break;
 			default:
-				fprintf(listing, "Unknown ExpNode kind\n");
+				fprintf(listing, "Unknown Expression Kind..\n");
 				break;
 			}
-		} else
+		}
+		else if (tree->nodekind == OpK)
+		{
+			switch (tree->detailKind.kindInOp)
+			{
+			case RelOpK:
+				fprintf(listing, "Relative Comparison Opeartion\n");
+				break;
+			case MathOpK:
+				fprintf(listing, "Math Operation \n");
+				break;
+			default:
+				fprintf(listing, "Unknown Operation Kind \n");
+				break;
+			}
+		}
+		else
 			fprintf(listing, "Unknown node kind\n");
 		for (i = 0; i < MAXCHILDREN; i++)
 			printTree(tree->child[i]);

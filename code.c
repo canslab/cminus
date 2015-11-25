@@ -6,8 +6,8 @@
 /* Kenneth C. Louden                                */
 /****************************************************/
 
-#include "globals.h"
 #include "code.h"
+#include "globals.h"
 
 /* TM location number for current instruction emission */
 static int emitLoc = 0 ;

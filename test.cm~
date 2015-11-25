@@ -1,0 +1,26 @@
+int gcd (int u, int v)
+{
+	int arr[3];
+
+	arr[0] = 5;
+	
+	arr[0] = u = 5555;
+	
+	if (arr[0] >= 5)
+	{	
+		output(345);
+	}
+	else
+	{
+		u = input();
+	}		
+
+	return 0;
+}
+
+void main(void)
+{
+    int x; int y;
+    x = input(); y = input();
+    output(gcd(x,y));
+}

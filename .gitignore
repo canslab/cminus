@@ -1,0 +1,30 @@
+
+<<<<<<< HEAD
+cminus
+
+tm
+
+*.o
+
+lex/tiny2.l
+=======
+*.o
+
+tm
+
+tiny
+
+*.o
+>>>>>>> scanner
+
+.settings/language.settings.xml
+
+cminus_flex
+
+lex.yy.c
+
+cminus_parse
+
+test4.cm
+
+*.cm~

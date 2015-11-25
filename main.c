@@ -8,7 +8,7 @@
 #include "globals.h"
 
 /* set NO_PARSE to TRUE to get a scanner-only compiler */
-#define NO_PARSE TRUE
+#define NO_PARSE FALSE
 /* set NO_ANALYZE to TRUE to get a parser-only compiler */
 #define NO_ANALYZE TRUE
 
@@ -37,10 +37,10 @@ FILE * listing;
 FILE * code;
 
 /* allocate and set tracing flags */
-int EchoSource = FALSE;
+int EchoSource = TRUE;
 int TraceScan = FALSE;
 int TraceParse = FALSE;
-int TraceAnalyze = FALSE;
+int TraceAnalyze = TRUE;
 int TraceCode = FALSE;
 
 int Error = FALSE;
@@ -57,7 +57,8 @@ main(int argc, char * argv[])
 
 	strcpy(pgm, argv[1]);
 	if (strchr(pgm, '.') == NULL)
-		strcat(pgm, ".tny");
+		strcat(pgm, ".cm");
+
 	source = fopen(pgm, "r");
 
 	if (source == NULL)
@@ -66,7 +67,11 @@ main(int argc, char * argv[])
 		exit(1);
 	}
 	listing = stdout; /* send listing to screen */
-	fprintf(listing, "\nTINY COMPILATION: %s\n", pgm);
+	fprintf(listing, "\nC-MINUS COMPILATION: %s\n", pgm);
+
+
+//	while (getToken()!=ENDFILE);
+
 #if NO_PARSE
 	while (getToken()!=ENDFILE);
 #else
@@ -76,6 +81,9 @@ main(int argc, char * argv[])
 		fprintf(listing, "\nSyntax tree:\n");
 		printTree(syntaxTree);
 	}
+	buildSymtab(syntaxTree);
+	typeCheck(syntaxTree);
+
 #if !NO_ANALYZE
 	if (!Error)
 	{
@@ -108,6 +116,7 @@ main(int argc, char * argv[])
 #endif
 #endif
 #endif
+
 	fclose(source);
 	return 0;
 }
